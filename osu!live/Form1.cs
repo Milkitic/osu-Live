@@ -10,30 +10,21 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using osu_live.Layer;
 
 namespace osu_live
 {
     public partial class Form1 : Form
     {
         // const
-        int canvas_width = 1280,
-            canvas_height = 720;
-        //int canvas_width = 1024,
-        //  canvas_height = 576;
-        float bg_pos_x = 0,
-           bg_pos_y = 0;
-        float bg_width, bg_height;
-
-        float bg_pos_x_old = 0,
-          bg_pos_y_old = 0;
-        float bg_width_old, bg_height_old;
+        int canvas_width = Constant.Canvas.Width,
+            canvas_height = Constant.Canvas.Height;
 
         Rectangle font_panel;
 
         // status
         //IdleStatus idleStatus_old = IdleStatus.Listening;
         IdleStatus idleStatus = IdleStatus.Listening;
-        ChangeStatus bg_changeStatus = ChangeStatus.ReadyToChange;
         ChangeStatus font_changeStatus = ChangeStatus.ReadyToChange;
 
         // var
@@ -42,14 +33,11 @@ namespace osu_live
         Bitmap display;
         Graphics display_g;
         FileInfo map_changed_info;
-        Image current_bg_old, current_bg;
+        //Image current_bg_old, current_bg;
         string current_title, current_title_old;
         string current_artist, current_artist_old;
         // bg_layer
-        Bitmap bg_layer;
-        Graphics bg_layer_g;
-        Bitmap bg_layer_cover;
-        Graphics bg_layer_cover_g;
+        L_background l_BG = new L_background();
 
         Bitmap bg_layer_particle;
         Graphics bg_layer_particle_g;
@@ -62,12 +50,12 @@ namespace osu_live
         public Form1()
         {
             InitializeComponent();
-            //  TODO:  在  InitComponent  调用后添加任何初始化 
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             //开启双缓冲
-            this.SetStyle(ControlStyles.DoubleBuffer, true);
-            this.SetStyle(ControlStyles.UserPaint, true);
-            this.SetStyle(ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.DoubleBuffer, true);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.ResizeRedraw, true);
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -78,12 +66,11 @@ namespace osu_live
 
         private void timer_status_change_Tick(object sender, EventArgs e)
         {
-            if (idleStatus == IdleStatus.Listening && bg_changeStatus == ChangeStatus.ReadyToChange)
+            if (idleStatus == IdleStatus.Listening && l_BG.ChangeStatus == ChangeStatus.ReadyToChange)
             {
-                bg_changeStatus = ChangeStatus.Changing;
+                l_BG.ChangeStatus = ChangeStatus.Changing;
+
                 font_changeStatus = ChangeStatus.Changing;
-                bg_width = 0;
-                bg_height = 0;
                 action_change_bg.Enabled = true;
                 action_change_info.Enabled = true;
             }
@@ -91,7 +78,7 @@ namespace osu_live
 
         bool fore_fade_flag = false;
         bool fore_fade_in = false;
-        int fore_fade_speed = 80;
+        int fore_fade_speed = 25;
         char[] current_artist_list;
         char[] current_title_list;
 
@@ -209,7 +196,7 @@ namespace osu_live
                 font_layer_g.DrawString(chara, font_artist, brush, artist_x_list_moving[i], artist_y);
                 if (artist_x_list_alpha[i] < 255) //控制透明度
                 {
-                    artist_x_list_alpha[i] += 25;
+                    artist_x_list_alpha[i] += fore_fade_speed;
                     if (artist_x_list_alpha[i] > 255) artist_x_list_alpha[i] = 255;
                 }
                 if (artist_x_list_moving[i] > artist_x_list[i]) //控制一直移动，直到到目标位置
@@ -228,7 +215,7 @@ namespace osu_live
                 font_layer_g.DrawString(chara, font_title, brush, title_x_list_moving[i], title_y);
                 if (title_x_list_alpha[i] < 255)
                 {
-                    title_x_list_alpha[i] += 25;
+                    title_x_list_alpha[i] += fore_fade_speed;
                     if (title_x_list_alpha[i] > 255) title_x_list_alpha[i] = 255;
                 }
                 if (title_x_list_moving[i] > title_x_list[i])
@@ -268,7 +255,7 @@ namespace osu_live
         {
             rec.Y -= 2;
             //rec.X += 1;
-            if (rec.Y < 0) rec.Y = canvas.Height;
+            if (rec.Y < 0) rec.Y = canvas_height;
             //rec.Height -= 1;
             try
             {
@@ -281,78 +268,14 @@ namespace osu_live
             catch { }
         }
 
-        int bg_fade = 0;
-        bool bg_fade_in = false;
-        bool bg_fade_flag = false;
-        int bg_fade_speed = 80;
         private void action_change_bg_Tick(object sender, EventArgs e)
         {
-            if (bg_changeStatus != ChangeStatus.Changing)
+            if (l_BG.ChangeStatus != ChangeStatus.Changing)
             {
-                //bg_layer_g.Dispose();
-                //bg_layer_cover_g.Dispose();
                 action_change_bg.Enabled = false;
                 return;
             }
-            if (bg_width == 0)
-            {
-                // deal with different size of image
-                if ((float)current_bg.Width / current_bg.Height > 16 / 9f) // more width
-                {
-                    float scale = (float)canvas_height / current_bg.Height;
-                    bg_height = canvas_height;
-                    bg_width = current_bg.Width * scale;
-                    bg_pos_x = -(bg_width - canvas_width) / 2;
-                    bg_pos_y = 0;
-                }
-                else if ((float)current_bg.Width / current_bg.Height < 16 / 9f) // more height
-                {
-                    float scale = (float)canvas_width / current_bg.Width;
-                    bg_width = canvas_width;
-                    bg_height = current_bg.Height * scale;
-                    bg_pos_x = 0;
-                    bg_pos_y = -(bg_height - canvas_height) / 2;
-                }
-                else
-                {
-                    bg_width = canvas_width;
-                    bg_height = canvas_height;
-                    bg_pos_x = 0;
-                    bg_pos_y = 0;
-                }
-            }
-            bg_layer_cover_g.Clear(Color.Transparent);
-            if (!bg_fade_in)
-            {
-                if (bg_fade_flag == false)
-                {
-                    bg_layer_g.DrawImage(current_bg_old, bg_pos_x_old, bg_pos_y_old, bg_width_old, bg_height_old);
-                    bg_fade_flag = true;
-                }
-
-                bg_layer_cover_g.FillRectangle(new SolidBrush(Color.FromArgb(bg_fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
-
-                bg_fade += bg_fade_speed;
-                if (bg_fade >= 255)
-                    bg_fade = 255;
-            }
-            else
-            {
-                if (bg_fade_flag == true)
-                {
-                    bg_layer_g.DrawImage(current_bg, bg_pos_x, bg_pos_y, bg_width, bg_height);
-                    bg_fade_flag = false;
-                }
-
-                bg_layer_cover_g.FillRectangle(new SolidBrush(Color.FromArgb(bg_fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
-                bg_fade -= bg_fade_speed;
-                if (bg_fade <= 0) bg_fade = 0;
-            }
-            if (bg_fade >= 255)
-            {
-                bg_fade_in = true;
-            }
-            else if (bg_fade == 0) bg_changeStatus = ChangeStatus.ChangeFinshed;
+            l_BG.Draw();
         }
 
         private void action_display_Tick(object sender, EventArgs e)
@@ -362,8 +285,8 @@ namespace osu_live
             display = new Bitmap(canvas_width, canvas_height);
             display_g = Graphics.FromImage(display);
             display_g.Clear(Color.Transparent);
-            display_g.DrawImage(bg_layer, 0, 0);
-            display_g.DrawImage(bg_layer_cover, 0, 0);
+            display_g.DrawImage(l_BG.Bitmap, 0, 0);
+            display_g.DrawImage(l_BG.Bitmap_c, 0, 0);
             display_g.DrawImage(bg_layer_particle, 0, 0);
             display_g.DrawImage(font_layer, font_panel);
 
@@ -373,13 +296,15 @@ namespace osu_live
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
+            //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
+            Form2 fm2 = new Form2();
+            fm2.Show();
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
         {
             FileInfo tmp = new FileInfo(@"Files\l_OsuFileLocation");
-            if (tmp.LastWriteTime == map_changed_info.LastWriteTime)
+            if (map_changed_info != null && tmp.LastWriteTime == map_changed_info.LastWriteTime)
                 return;
             map_changed_info = tmp;
             root_old = root;
@@ -391,53 +316,39 @@ namespace osu_live
             {
                 return;
             }
-            if (root.Trim() == "") idleStatus = IdleStatus.Playing;
-            else if (root == root_old) return;
+            if (root.Trim() == "")
+            {
+                idleStatus = IdleStatus.Playing;
+                //todo
+            }
             else
             {
-                //idleStatus_old = idleStatus;
                 idleStatus = IdleStatus.Listening;
-                //if (idleStatus_old == idleStatus) return;
+
+                if (root == root_old) return;
 
                 /// Initialize
                 if (!timer_status_change.Enabled)
                 {
-                    bg_layer = new Bitmap(canvas_width, canvas_height);
-                    bg_layer_cover = new Bitmap(canvas_width, canvas_height);
                     int font_panel_y = (int)(canvas_height * (600d / 720));
                     font_panel = new Rectangle(0, font_panel_y, canvas_width, canvas_height - font_panel_y);
                     font_layer = new Bitmap(font_panel.Width, font_panel.Height);
 
                     bg_layer_particle = new Bitmap(canvas_width, canvas_height);
                     bg_layer_particle_g = Graphics.FromImage(bg_layer_particle);
-                    bg_layer_particle_g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                    bg_layer_particle_g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    bg_layer_particle_g.SmoothingMode = SmoothingMode.AntiAlias;
+                    bg_layer_particle_g.CompositingQuality = CompositingQuality.HighQuality;
                     rec = new RectangleF(640, 400, 20, 20);
                 }
                 else
                 {
-                    bg_layer_cover_g.Dispose();
-                    bg_layer_g.Dispose();
+                    l_BG.Graphics_c.Dispose();
+                    l_BG.Graphics.Dispose();
                     font_layer_g.Dispose();
-                    //bg_layer_particle_g.Dispose();
                 }
 
                 // bgLayer
-                bg_layer_cover_g = Graphics.FromImage(bg_layer_cover);
-                bg_layer_g = Graphics.FromImage(bg_layer);
-
-                bg_pos_x_old = bg_pos_x;
-                bg_pos_y_old = bg_pos_y;
-                bg_width_old = bg_width;
-                bg_height_old = bg_height;
-
-                bg_changeStatus = ChangeStatus.ReadyToChange;
-                bg_fade = 0;
-                bg_fade_in = false;
-
-                current_bg_old = current_bg;
-                current_bg = SceneListen.GetMapBG(map_changed_info);
-                if (current_bg_old == null) current_bg_old = current_bg;
+                l_BG.Initialize(map_changed_info);
 
                 // fontLayer
                 font_layer_g = Graphics.FromImage(font_layer);
@@ -474,10 +385,10 @@ namespace osu_live
                     title_x_list_moving_a[i] = 13;
                 if (action_change_info.Enabled) action_change_info.Enabled = false;
                 //
-                if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
-                if (!action_display.Enabled) action_display.Enabled = true;
-                if (!action_particle.Enabled) action_particle.Enabled = true;
             }
+            if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
+            if (!action_display.Enabled) action_display.Enabled = true;
+            if (!action_particle.Enabled) action_particle.Enabled = true;
         }
     }
 }

@@ -69,7 +69,7 @@
             // 
             // action_display
             // 
-            this.action_display.Interval = 16;
+            this.action_display.Interval = 17;
             this.action_display.Tick += new System.EventHandler(this.action_display_Tick);
             // 
             // action_change_info
