@@ -14,26 +14,22 @@ namespace osu_live.Layer
         public Graphics Graphics { get; set; }
         public Bitmap Bitmap_c { get; set; }
         public Graphics Graphics_c { get; set; }
-
-        public float X { get; set; } = 0;
-        public float Y { get; set; } = 0;
-        public float Width { get; set; } = 0;
-        public float Height { get; set; } = 0;
-        public float Ratio { get => Background.Width / (float)Background.Height; }
-
-        public float PreX { get; set; } = 0;
-        public float PreY { get; set; } = 0;
-        public float PreWidth { get; set; } = 0;
-        public float PreHeight { get; set; } = 0;
-
-        public Image Background { get; set; }
-        public Image PreBackground { get; set; }
-
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
 
-        private int canvas_height = Constant.Canvas.Height;
-        private int canvas_width = Constant.Canvas.Width;
+        float x = 0, y = 0;
+        float width = 0, height = 0;
+        float preX = 0, preY = 0;
+        float preWidth = 0, preHeight = 0;
 
+        Image newBackground, oldBackground;
+        float Ratio { get => newBackground.Width / (float)newBackground.Height; }
+
+        int canvas_height = Constant.Canvas.Height;
+        int canvas_width = Constant.Canvas.Width;
+
+        int fade, fadeSpeed;
+        bool isFadeIn, flag;
+        
         public L_background()
         {
             Bitmap = new Bitmap(canvas_width, canvas_height);
@@ -43,28 +39,23 @@ namespace osu_live.Layer
         {
             Graphics = Graphics.FromImage(Bitmap);
             Graphics_c = Graphics.FromImage(Bitmap_c);
-            PreX = X;
-            PreY = Y;
-            PreWidth = Width;
-            PreHeight = Height;
+            preX = x;
+            preY = y;
+            preWidth = width;
+            preHeight = height;
 
             ChangeStatus = ChangeStatus.ReadyToChange;
 
-            PreBackground = Background;
-            Background = SceneListen.GetMapBG(MapInfo);
-            if (PreBackground == null)
-                PreBackground = Background;
+            oldBackground = newBackground;
+            newBackground = SceneListen.GetMapBG(MapInfo);
+            if (oldBackground == null)
+                oldBackground = newBackground;
 
             fade = 0;
             isFadeIn = false;
             flag = false;
             fadeSpeed = 80;
         }
-
-        int fade;
-        bool isFadeIn;
-        bool flag;
-        int fadeSpeed;
 
         public void Draw()
         {
@@ -73,7 +64,7 @@ namespace osu_live.Layer
             {
                 if (flag == false)
                 {
-                    Graphics.DrawImage(PreBackground, PreX, PreY, PreWidth, PreHeight);
+                    Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
                     flag = true;
                 }
 
@@ -92,7 +83,7 @@ namespace osu_live.Layer
                 {
                     GetBGSize();
                     Graphics.Clear(Color.Transparent);
-                    Graphics.DrawImage(Background, X, Y, Width, Height);
+                    Graphics.DrawImage(newBackground, x, y, width, height);
                     flag = false;
                 }
 
@@ -111,19 +102,19 @@ namespace osu_live.Layer
             // deal with different size of image
             if (Ratio >= Constant.Canvas.Ratio) // more width
             {
-                float scale = (float)canvas_height / Background.Height;
-                Height = canvas_height;
-                Width = Background.Width * scale;
-                X = -(Width - canvas_width) / 2;
-                Y = Constant.Canvas.Y;
+                float scale = (float)canvas_height / newBackground.Height;
+                height = canvas_height;
+                width = newBackground.Width * scale;
+                x = -(width - canvas_width) / 2;
+                y = Constant.Canvas.Y;
             }
             else if (Ratio < Constant.Canvas.Ratio) // more height
             {
-                float scale = (float)canvas_width / Background.Width;
-                Width = canvas_width;
-                Height = Background.Height * scale;
-                X = Constant.Canvas.X;
-                Y = -(Height - canvas_height) / 2;
+                float scale = (float)canvas_width / newBackground.Width;
+                width = canvas_width;
+                height = newBackground.Height * scale;
+                x = Constant.Canvas.X;
+                y = -(height - canvas_height) / 2;
             }
         }
     }
