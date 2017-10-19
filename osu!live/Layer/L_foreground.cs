@@ -15,8 +15,7 @@ namespace osu_live.Layer
         public Rectangle Rec_Panel { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
 
-        int canvas_height = Constant.Canvas.Height;
-        int canvas_width = Constant.Canvas.Width;
+        int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
 
         string newTitle, oldTitle;
         string newArtist, oldArtist;

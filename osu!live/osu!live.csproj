@@ -64,6 +64,7 @@
     <Compile Include="Function.cs" />
     <Compile Include="Layer\L_background.cs" />
     <Compile Include="Layer\L_foreground.cs" />
+    <Compile Include="Layer\L_particle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Status.cs" />

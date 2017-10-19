@@ -30,12 +30,10 @@ namespace osu_live
         Graphics display_g;
         FileInfo map_changed_info;
 
-
         L_background l_BG = new L_background();
         L_foreground l_FG = new L_foreground();
+        L_particle l_PA = new L_particle();
 
-        Bitmap bg_layer_particle;
-        Graphics bg_layer_particle_g;
 
         string root_old;
         public Form1()
@@ -75,22 +73,9 @@ namespace osu_live
             }
             l_FG.Draw();
         }
-        RectangleF rec;
         private void action_particle_Tick(object sender, EventArgs e)
         {
-            rec.Y -= 2;
-            //rec.X += 1;
-            if (rec.Y < 0) rec.Y = canvas_height;
-            //rec.Height -= 1;
-            try
-            {
-                bg_layer_particle_g.Clear(Color.Transparent);
-                // rec.Y -= 1;
-                //rec.Height -= 1;
-                //bg_layer_particle_g.DrawRectangle(new Pen(Color.FromArgb(255, 255, 255, 255)), rec);
-                bg_layer_particle_g.FillRectangle(new SolidBrush(Color.FromArgb(64, 123, 53, 230)), rec);
-            }
-            catch { }
+            l_PA.Draw();
         }
 
         private void action_change_bg_Tick(object sender, EventArgs e)
@@ -112,7 +97,7 @@ namespace osu_live
             display_g.Clear(Color.Transparent);
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
             display_g.DrawImage(l_BG.Bitmap_c, 0, 0);
-            display_g.DrawImage(bg_layer_particle, 0, 0);
+            display_g.DrawImage(l_PA.Bitmap, 0, 0);
             display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
 
             display_g.Dispose();
@@ -124,6 +109,14 @@ namespace osu_live
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
             Form2 fm2 = new Form2();
             fm2.Show();
+            Size = new Size(1296, 759);
+            Size = new Size(800, 600);
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            Text = ClientRectangle.Width.ToString() + "," + ClientRectangle.Height.ToString();
+
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
@@ -155,12 +148,8 @@ namespace osu_live
                 /// Initialize
                 if (!timer_status_change.Enabled)
                 {
-
-                    bg_layer_particle = new Bitmap(canvas_width, canvas_height);
-                    bg_layer_particle_g = Graphics.FromImage(bg_layer_particle);
-                    bg_layer_particle_g.SmoothingMode = SmoothingMode.AntiAlias;
-                    bg_layer_particle_g.CompositingQuality = CompositingQuality.HighQuality;
-                    rec = new RectangleF(640, 400, 20, 20);
+                    //first run
+                    l_PA.Initialize();
                 }
                 else
                 {
@@ -168,20 +157,15 @@ namespace osu_live
                     l_BG.Graphics.Dispose();
                     l_FG.Graphics.Dispose();
                 }
-
-                // bgLayer
                 l_BG.Initialize(map_changed_info);
-
-                // fontLayer
-
-
+                l_FG.Initialize(map_changed_info);
 
                 if (action_change_info.Enabled) action_change_info.Enabled = false;
                 //
             }
             if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
-            if (!action_display.Enabled) action_display.Enabled = true;
             if (!action_particle.Enabled) action_particle.Enabled = true;
+            if (!action_display.Enabled) action_display.Enabled = true;
         }
     }
 }
