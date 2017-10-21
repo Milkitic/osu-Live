@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace osu_live
 {
-    enum IdleStatus
+    public enum IdleStatus
     {
         Listening,
         Playing
     }
-    enum ChangeStatus
+    public enum ChangeStatus
     {
         ReadyToChange,
         Changing,

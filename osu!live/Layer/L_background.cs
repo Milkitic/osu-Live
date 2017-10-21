@@ -8,12 +8,10 @@ using System.Threading.Tasks;
 
 namespace osu_live.Layer
 {
-    class L_background
+    public class L_background
     {
         public Bitmap Bitmap { get; set; }
         public Graphics Graphics { get; set; }
-        public Bitmap Bitmap_c { get; set; }
-        public Graphics Graphics_c { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
 
         float x = 0, y = 0;
@@ -29,16 +27,14 @@ namespace osu_live.Layer
 
         int fade, fadeSpeed;
         bool isFadeIn, flag;
-        
+
         public L_background()
         {
             Bitmap = new Bitmap(canvas_width, canvas_height);
-            Bitmap_c = new Bitmap(canvas_width, canvas_height);
         }
         public void Initialize(FileInfo MapInfo)
         {
             Graphics = Graphics.FromImage(Bitmap);
-            Graphics_c = Graphics.FromImage(Bitmap_c);
             preX = x;
             preY = y;
             preWidth = width;
@@ -59,16 +55,15 @@ namespace osu_live.Layer
 
         public void Draw()
         {
-            Graphics_c.Clear(Color.Transparent);
+            Graphics.Clear(Color.Transparent);
             if (!isFadeIn)
             {
-                if (flag == false)
+                if (!flag)
                 {
-                    Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
                     flag = true;
                 }
-
-                Graphics_c.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
+                Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
 
                 fade += fadeSpeed;
                 if (fade >= 255)
@@ -79,21 +74,23 @@ namespace osu_live.Layer
             }
             else
             {
-                if (flag == true)
+                if (flag)
                 {
                     GetBGSize();
-                    Graphics.Clear(Color.Transparent);
-                    Graphics.DrawImage(newBackground, x, y, width, height);
                     flag = false;
                 }
 
-                Graphics_c.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
-                fade -= fadeSpeed;
-                if (fade <= 0)
+                Graphics.DrawImage(newBackground, x, y, width, height);
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
+
+                if (fade > 0)
                 {
-                    ChangeStatus = ChangeStatus.ChangeFinshed;
-                    //fade = 0;
+                    fade -= fadeSpeed;
+                    if (fade < 0)
+                        fade = 0;
                 }
+                else
+                    ChangeStatus = ChangeStatus.ChangeFinshed;
             }
         }
 

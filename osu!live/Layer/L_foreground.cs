@@ -8,7 +8,7 @@ using System.IO;
 
 namespace osu_live.Layer
 {
-    class L_foreground
+    public class L_foreground
     {
         public Bitmap Bitmap { get; set; }
         public Graphics Graphics { get; set; }
@@ -16,6 +16,7 @@ namespace osu_live.Layer
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
 
         int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
+        float zoom = (float)Constant.Canvas.Zoom;
 
         string newTitle, oldTitle;
         string newArtist, oldArtist;
@@ -26,21 +27,29 @@ namespace osu_live.Layer
         char[] artist_list;
         char[] title_list;
 
-        int artist_x = 25, artist_y = 30;
-        int title_x = 20, title_y = 60;
-        int shadow_offset = 2;
+        float artist_x = 25, artist_y = 30;
+        float title_x = 20, title_y = 60;
+        float shadow_offset = 2;
         float[] artist_x_list_std, title_x_list_std;
         float[] artist_x_list_moving, title_x_list_moving;
         float[] artist_x_list_moving_a = { 15 }, title_x_list_moving_a = { 20 };
         int[] artist_x_list_alpha = { 0 }, title_x_list_alpha = { 0 };
 
-        int action_info_counter = -1;
+        float action_info_counter = -1;
 
         public void Initialize(FileInfo MapInfo)
         {
+            artist_x = 25 * zoom;
+            artist_y = 30 * zoom;
+            title_x = 20 * zoom;
+            title_y = 60 * zoom;
+            shadow_offset = 2 * zoom;
+
+            //
+
             int font_panel_y = (int)(canvas_height * (600d / 720));
             Rec_Panel = new Rectangle(0, font_panel_y, canvas_width, canvas_height - font_panel_y);
-            Bitmap = new Bitmap(Rec_Panel.Width, Rec_Panel.Height);
+            if (Bitmap == null) Bitmap = new Bitmap(Rec_Panel.Width, Rec_Panel.Height);
 
             Graphics = Graphics.FromImage(Bitmap);
             ChangeStatus = ChangeStatus.ReadyToChange;
@@ -71,9 +80,9 @@ namespace osu_live.Layer
             isRunned = false;
 
             for (int i = 0; i < artist_x_list_moving_a.Length; i++)
-                artist_x_list_moving_a[i] = 11;
+                artist_x_list_moving_a[i] = 11 * zoom;
             for (int i = 0; i < title_x_list_moving_a.Length; i++)
-                title_x_list_moving_a[i] = 13;
+                title_x_list_moving_a[i] = 13 * zoom;
         }
         public void Draw()
         {
@@ -90,12 +99,12 @@ namespace osu_live.Layer
             //font_layer_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
             #endregion
 
-            font_artist = new Font("等线 Light", 18, FontStyle.Regular);
-            font_title = new Font("等线 Light", 28, FontStyle.Regular);
+            font_artist = new Font("等线 Light", 18 * zoom, FontStyle.Regular);
+            font_title = new Font("等线 Light", 28 * zoom, FontStyle.Regular);
             if (!isRunned)
             {
                 Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
                 Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
                 // calculate each character's position
@@ -110,11 +119,11 @@ namespace osu_live.Layer
                         artist_x_list_std[i] = artist_x;
                     else
                         artist_x_list_std[i] = artist_x_list_std[i - 1] + old_width;
-                    artist_x_list_moving[i] = artist_x_list_std[i] + 70;
+                    artist_x_list_moving[i] = artist_x_list_std[i] + 70 * zoom;
                     if (artist_list[i] == ' ')
-                        old_width = 6;
+                        old_width = 6 * zoom;
                     else
-                        old_width = sizeF.Width - 8;
+                        old_width = sizeF.Width - 8 * zoom;
                 }
 
                 // new title_list
@@ -128,12 +137,12 @@ namespace osu_live.Layer
                     else
                         title_x_list_std[i] = title_x_list_std[i - 1] + old_width;
 
-                    title_x_list_moving[i] = title_x_list_std[i] + 90;
+                    title_x_list_moving[i] = title_x_list_std[i] + 90 * zoom;
 
                     if (title_list[i] == ' ')
-                        old_width = 10;
+                        old_width = 10 * zoom;
                     else
-                        old_width = sizeF.Width - 13;
+                        old_width = sizeF.Width - 13 * zoom;
                 }
                 isRunned = true;
             }
@@ -156,7 +165,7 @@ namespace osu_live.Layer
                     artist_x_list_moving[i] -= artist_x_list_moving_a[i];
                 else artist_x_list_moving[i] = artist_x_list_std[i];
 
-                if (artist_x_list_moving_a[i] > 1) artist_x_list_moving_a[i]--; //control the acceleration
+                if (artist_x_list_moving_a[i] > 1) artist_x_list_moving_a[i] -= zoom; //control the acceleration
             }
 
             //draw title
@@ -177,7 +186,7 @@ namespace osu_live.Layer
                     title_x_list_moving[i] -= title_x_list_moving_a[i];
                 else title_x_list_moving[i] = title_x_list_std[i];
 
-                if (title_x_list_moving_a[i] > 1) title_x_list_moving_a[i]--;
+                if (title_x_list_moving_a[i] > 1) title_x_list_moving_a[i] -= zoom;
             }
             action_info_counter++;
 

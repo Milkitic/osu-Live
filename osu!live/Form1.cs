@@ -19,6 +19,7 @@ namespace osu_live
         // const
         int canvas_width = Constant.Canvas.Width,
             canvas_height = Constant.Canvas.Height;
+        float zoom = (float)Constant.Canvas.Zoom;
 
         // status
         IdleStatus idleStatus = IdleStatus.Listening;
@@ -30,9 +31,9 @@ namespace osu_live
         Graphics display_g;
         FileInfo map_changed_info;
 
-        L_background l_BG = new L_background();
-        L_foreground l_FG = new L_foreground();
-        L_particle l_PA = new L_particle();
+        public static L_background l_BG = new L_background();
+        public static L_foreground l_FG = new L_foreground();
+        public static L_particle l_PA = new L_particle();
 
 
         string root_old;
@@ -45,12 +46,15 @@ namespace osu_live
             SetStyle(ControlStyles.DoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
+
+            Size = new Size(1296, 759);
+
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
         {
 
-            Height = (int)((Width - 16) / 1280d * 720) + 39;
+
         }
 
         private void timer_status_change_Tick(object sender, EventArgs e)
@@ -87,19 +91,46 @@ namespace osu_live
             }
             l_BG.Draw();
         }
-
+        Stopwatch ts = new Stopwatch();
+        int frame_count = 0;
+        double fps = 0;
         private void action_display_Tick(object sender, EventArgs e)
         {
-            //canvas.Image = bg_layer;
             if (display != null) display.Dispose();
             display = new Bitmap(canvas_width, canvas_height);
             display_g = Graphics.FromImage(display);
+
+            display_g.SmoothingMode = SmoothingMode.AntiAlias;
+            display_g.CompositingQuality = CompositingQuality.Invalid;
+            display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
             display_g.Clear(Color.Transparent);
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
-            display_g.DrawImage(l_BG.Bitmap_c, 0, 0);
-            display_g.DrawImage(l_PA.Bitmap, 0, 0);
-            display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
 
+            //效率就是一坨翔，我要退坑了
+            //foreach (var bmp in l_PA.Bitmap)
+            //{
+            //    display_g.DrawImage(bmp, 0, 0);
+            //}
+
+            //display_g.DrawImage(l_PA.Bitmap, 0, 0);
+            display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
+            Color a;
+            if (fps >= 30) a = Color.FromArgb(172, 220, 25);
+            else if (fps >= 20)
+                a = Color.FromArgb(255, 204, 34);
+            else
+                a = Color.FromArgb(255, 149, 24);
+            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1195 * zoom, 697 * zoom, canvas_width, canvas_height));
+            display_g.DrawString(string.Format("{0:0.0}", fps > 30 ? 30 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
+            if (frame_count == 0)
+            {
+                fps = Math.Round((1000f / ts.ElapsedMilliseconds), 2);
+                frame_count = 0;
+            }
+            else
+                frame_count++;
+            ts.Restart();
             display_g.Dispose();
             canvas.Image = display;
         }
@@ -109,14 +140,12 @@ namespace osu_live
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
             Form2 fm2 = new Form2();
             fm2.Show();
-            Size = new Size(1296, 759);
-            Size = new Size(800, 600);
+            //Size = new Size(800, 600);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = ClientRectangle.Width.ToString() + "," + ClientRectangle.Height.ToString();
-
+            Text = string.Format("{0}, {1} (resolution: {2}, {3})", ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height);
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
@@ -153,7 +182,6 @@ namespace osu_live
                 }
                 else
                 {
-                    l_BG.Graphics_c.Dispose();
                     l_BG.Graphics.Dispose();
                     l_FG.Graphics.Dispose();
                 }

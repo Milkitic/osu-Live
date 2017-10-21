@@ -10,8 +10,8 @@ namespace osu_live
     {
         public static _canvas Canvas { get; set; } = new _canvas
         {
-            Height = 720,
-            Width = 1280,
+            Height = 1280,
+            Width = 720,
             X = 0,
             Y = 0
         };
@@ -23,6 +23,15 @@ namespace osu_live
             public int X { get; set; }
             public int Y { get; set; }
             public float Ratio { get => (float)Width / Height; }
+            public double Zoom
+            {
+                get => (float)Width / 1280;
+                set
+                {
+                    Width = (int)(value * 1280);
+                    Height = (int)(value * 720);
+                }
+            }
         }
     }
 }
