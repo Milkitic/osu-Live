@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Drawing.Drawing2D;
 
 namespace osu_live.Layer
 {
@@ -103,8 +104,8 @@ namespace osu_live.Layer
             font_title = new Font("等线 Light", 28 * zoom, FontStyle.Regular);
             if (!isRunned)
             {
-                Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+                Graphics.SmoothingMode = SmoothingMode.HighQuality;
+                Graphics.CompositingQuality = CompositingQuality.HighQuality;
                 Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
                 // calculate each character's position
@@ -217,7 +218,9 @@ namespace osu_live.Layer
 
         private void Clear()
         {
-            Graphics.Clear(Color.FromArgb(80, 0, 0, 0));
+            Graphics.Clear(Color.FromArgb(0, 0, 0, 0));
+            LinearGradientBrush linGrBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Rec_Panel.Height), Color.FromArgb(0, 0, 0, 0), Color.FromArgb(200, 0, 0, 0));
+            Graphics.FillRectangle(linGrBrush, 0, 0, Rec_Panel.Width, Rec_Panel.Height);
         }
     }
 }

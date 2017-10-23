@@ -33,6 +33,7 @@
             this.canvas = new System.Windows.Forms.PictureBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.canvas2 = new System.Windows.Forms.PictureBox();
+            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.canvas2)).BeginInit();
             this.SuspendLayout();
@@ -72,11 +73,22 @@
             this.canvas2.TabIndex = 2;
             this.canvas2.TabStop = false;
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(41, 12);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(107, 23);
+            this.button2.TabIndex = 3;
+            this.button2.Text = "particle test";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(542, 196);
+            this.ClientSize = new System.Drawing.Size(542, 400);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.canvas2);
             this.Controls.Add(this.canvas);
             this.Controls.Add(this.button1);
@@ -95,5 +107,6 @@
         private System.Windows.Forms.PictureBox canvas;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.PictureBox canvas2;
+        private System.Windows.Forms.Button button2;
     }
 }

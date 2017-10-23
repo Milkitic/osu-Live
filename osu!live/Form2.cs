@@ -47,6 +47,12 @@ namespace osu_live
             File.WriteAllText(@"Files\l_ArtistUnicode", c);
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Form3 fm3 = new Form3();
+            fm3.Show();
+        }
+
         private void timer1_Tick(object sender, EventArgs e)
         {
             display_g = canvas.CreateGraphics();

@@ -42,7 +42,7 @@
             // timer_status_check
             // 
             this.timer_status_check.Enabled = true;
-            this.timer_status_check.Interval = 16;
+            this.timer_status_check.Interval = 10;
             this.timer_status_check.Tick += new System.EventHandler(this.timer_status_check_Tick);
             // 
             // canvas
@@ -59,27 +59,27 @@
             // 
             // timer_status_change
             // 
-            this.timer_status_change.Interval = 16;
+            this.timer_status_change.Interval = 1;
             this.timer_status_change.Tick += new System.EventHandler(this.timer_status_change_Tick);
             // 
             // action_change_bg
             // 
-            this.action_change_bg.Interval = 16;
+            this.action_change_bg.Interval = 1;
             this.action_change_bg.Tick += new System.EventHandler(this.action_change_bg_Tick);
             // 
             // action_display
             // 
-            this.action_display.Interval = 17;
+            this.action_display.Interval = 1;
             this.action_display.Tick += new System.EventHandler(this.action_display_Tick);
             // 
             // action_change_info
             // 
-            this.action_change_info.Interval = 16;
+            this.action_change_info.Interval = 1;
             this.action_change_info.Tick += new System.EventHandler(this.action_change_info_Tick);
             // 
             // action_particle
             // 
-            this.action_particle.Interval = 16;
+            this.action_particle.Interval = 1;
             this.action_particle.Tick += new System.EventHandler(this.action_particle_Tick);
             // 
             // Form1

@@ -92,8 +92,11 @@ namespace osu_live
             l_BG.Draw();
         }
         Stopwatch ts = new Stopwatch();
+        Stopwatch ts2 = new Stopwatch();
         int frame_count = 0;
         double fps = 0;
+
+        long d_bg, d_pa, d_fg;
         private void action_display_Tick(object sender, EventArgs e)
         {
             if (display != null) display.Dispose();
@@ -105,24 +108,32 @@ namespace osu_live
             display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
             display_g.Clear(Color.Transparent);
+            ts2.Restart();
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
-
+            d_bg = ts2.ElapsedMilliseconds;
+            ts2.Restart();
             //效率就是一坨翔，我要退坑了
             //foreach (var bmp in l_PA.Bitmap)
             //{
             //    display_g.DrawImage(bmp, 0, 0);
             //}
+            d_pa = ts2.ElapsedMilliseconds;
 
             //display_g.DrawImage(l_PA.Bitmap, 0, 0);
+            ts2.Restart();
             display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
+            d_fg = ts2.ElapsedMilliseconds;
             Color a;
-            if (fps >= 30) a = Color.FromArgb(172, 220, 25);
-            else if (fps >= 20)
+            if (fps >= 60)
+                a = Color.FromArgb(172, 220, 25);
+            else if (fps >= 45)
                 a = Color.FromArgb(255, 204, 34);
             else
                 a = Color.FromArgb(255, 149, 24);
-            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1195 * zoom, 697 * zoom, canvas_width, canvas_height));
-            display_g.DrawString(string.Format("{0:0.0}", fps > 30 ? 30 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
+
+            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1196 * zoom, 698 * zoom, canvas_width, canvas_height));
+            display_g.DrawString(string.Format("{0:0.0}", fps > 60 ? 60 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
+            //display_g.DrawString(string.Format("{0:0.0}", fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
             if (frame_count == 0)
             {
                 fps = Math.Round((1000f / ts.ElapsedMilliseconds), 2);
@@ -133,6 +144,7 @@ namespace osu_live
             ts.Restart();
             display_g.Dispose();
             canvas.Image = display;
+            Form1_Resize(sender, e);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -145,7 +157,8 @@ namespace osu_live
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = string.Format("{0}, {1} (resolution: {2}, {3})", ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height);
+            Text = string.Format("{0}, {1} (resolution: {2}, {3}) d_bg: {4}, d_pa: {5}, d_fg: {6}",
+                ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height, d_bg, d_pa, d_fg);
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)

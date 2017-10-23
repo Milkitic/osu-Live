@@ -19,11 +19,11 @@ namespace osu_live.Layer
 
         RectangleF[] rec;
         float[] degree = { 0 }, degree_spd, y_move_spd;
-        int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
+        int canvas_height = (int)(Constant.Canvas.Height * 0.5), canvas_width = (int)(Constant.Canvas.Width * 0.2);
         Random rnd = new Random();
         public void Initialize()
         {
-            Graphic = new Graphics[0];
+            Graphic = new Graphics[30];
             Bitmap = new Bitmap[Graphic.Length];
             rec = new RectangleF[Graphic.Length];
             degree = new float[Graphic.Length];
@@ -48,7 +48,7 @@ namespace osu_live.Layer
 
         public void Draw()
         {
-            return;
+            //return;
             for (int i = 0; i < Graphic.Length; i++)
             {
                 if (rec[i].Y + rec[i].Height < 0)
@@ -69,7 +69,7 @@ namespace osu_live.Layer
                     Graphic[i].ResetTransform();
                     //Graphic[i].Dispose();
                 }
-                catch (InvalidOperationException ex)
+                catch (InvalidOperationException)
                 {
 
                 }
