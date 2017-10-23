@@ -9,7 +9,8 @@ namespace osu_live
     public enum IdleStatus
     {
         Listening,
-        Playing
+        Playing,
+        Stopped
     }
     public enum ChangeStatus
     {

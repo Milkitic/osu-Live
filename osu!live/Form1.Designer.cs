@@ -48,7 +48,7 @@
             // canvas
             // 
             this.canvas.BackColor = System.Drawing.Color.Black;
-            this.canvas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.canvas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.canvas.Dock = System.Windows.Forms.DockStyle.Fill;
             this.canvas.Location = new System.Drawing.Point(0, 0);
             this.canvas.Name = "canvas";

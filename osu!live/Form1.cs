@@ -22,7 +22,7 @@ namespace osu_live
         float zoom = (float)Constant.Canvas.Zoom;
 
         // status
-        IdleStatus idleStatus = IdleStatus.Listening;
+        public static IdleStatus idleStatus = IdleStatus.Stopped;
 
         // var
         string root = null;
@@ -178,7 +178,7 @@ namespace osu_live
             }
             if (root.Trim() == "")
             {
-                idleStatus = IdleStatus.Playing;
+                //idleStatus = IdleStatus.Playing;
                 //todo
             }
             else
@@ -204,9 +204,12 @@ namespace osu_live
                 if (action_change_info.Enabled) action_change_info.Enabled = false;
                 //
             }
-            if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
-            if (!action_particle.Enabled) action_particle.Enabled = true;
-            if (!action_display.Enabled) action_display.Enabled = true;
+            if (idleStatus != IdleStatus.Stopped)
+            {
+                if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
+                if (!action_particle.Enabled) action_particle.Enabled = true;
+                if (!action_display.Enabled) action_display.Enabled = true;
+            }
         }
     }
 }

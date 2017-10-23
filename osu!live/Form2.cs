@@ -55,6 +55,7 @@ namespace osu_live
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            if (Form1.idleStatus == IdleStatus.Stopped) return;
             display_g = canvas.CreateGraphics();
             display_g.Clear(Color.White);
             display_g.DrawImage(Form1.l_BG.Bitmap, 0, 0, canvas.Width, canvas.Height);

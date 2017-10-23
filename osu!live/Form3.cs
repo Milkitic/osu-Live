@@ -87,11 +87,14 @@ namespace osu_live
                     GraphicsPath gp = new GraphicsPath();
                     gp.AddRectangle(rec[i]);
                     //gp.AddString("cnbb", new FontFamily("arial"), FontStyle.Regular, 12, rec[i].Location, StringFormatFlags.NoClip);
-                    Matrix m = new Matrix();
-                    m.Translate(rec[i].Width / 2 + rec[i].Left, rec[i].Height / 2 + rec[i].Top);
-                    m.Rotate(degree[i]);
-                    m.Translate(-rec[i].Width / 2 - rec[i].Left, -rec[i].Height / 2 - rec[i].Top);
-                    gp.Transform(m);
+                    if (checkBox2.Checked)
+                    {
+                        Matrix m = new Matrix();
+                        m.Translate(rec[i].Width / 2 + rec[i].Left, rec[i].Height / 2 + rec[i].Top);
+                        m.Rotate(degree[i]);
+                        m.Translate(-rec[i].Width / 2 - rec[i].Left, -rec[i].Height / 2 - rec[i].Top);
+                        gp.Transform(m);
+                    }
                     graphic.FillPath(new SolidBrush(color[i]), gp);
                     if (checkBox1.Checked) graphic.DrawPath(new Pen(Color.Black), gp);
                 }
