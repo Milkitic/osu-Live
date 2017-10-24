@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -14,6 +15,10 @@ namespace osu_live.Layer
         public Bitmap Bitmap { get; set; }
         public Graphics Graphics { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
+
+        public long InitializeTime { get; set; }
+        public long DrawTime { get; set; }
+        Stopwatch sw = new Stopwatch();
 
         float x = 0, y = 0;
         float width = 0, height = 0;
@@ -37,6 +42,8 @@ namespace osu_live.Layer
         }
         public void Initialize(FileInfo MapInfo)
         {
+            sw.Restart();
+
             Graphics = Graphics.FromImage(Bitmap);
             preX = x;
             preY = y;
@@ -54,10 +61,16 @@ namespace osu_live.Layer
             isFadeIn = false;
             flag = false;
             fadeSpeed = 80;
+
+            InitializeTime = sw.ElapsedMilliseconds;
+            sw.Stop();
+            //InitializeTime = 0;
         }
 
         public void Draw()
         {
+            sw.Restart();
+
             color = Color.FromArgb(rnd.Next(0, 50), rnd.Next(0, 50), rnd.Next(0, 50));
             if (!isFadeIn)
             {
@@ -95,8 +108,17 @@ namespace osu_live.Layer
                         fade = 0;
                 }
                 else
+                {
                     ChangeStatus = ChangeStatus.ChangeFinshed;
+                    Graphics.Dispose();
+                    sw.Stop();
+                    DrawTime = 0;
+                    return;
+                }
             }
+
+            DrawTime = sw.ElapsedMilliseconds;
+            sw.Stop();
         }
 
         private void GetBGSize()

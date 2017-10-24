@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Drawing.Drawing2D;
+using System.Diagnostics;
 
 namespace osu_live.Layer
 {
@@ -15,6 +16,9 @@ namespace osu_live.Layer
         public Graphics Graphics { get; set; }
         public Rectangle Rec_Panel { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
+        public long InitializeTime { get; set; }
+        public long DrawTime { get; set; }
+        Stopwatch sw = new Stopwatch();
 
         int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
         float zoom = (float)Constant.Canvas.Zoom;
@@ -40,6 +44,8 @@ namespace osu_live.Layer
 
         public void Initialize(FileInfo MapInfo)
         {
+            sw.Restart();
+
             artist_x = 25 * zoom;
             artist_y = 30 * zoom;
             title_x = 20 * zoom;
@@ -84,9 +90,15 @@ namespace osu_live.Layer
                 artist_x_list_moving_a[i] = 11 * zoom;
             for (int i = 0; i < title_x_list_moving_a.Length; i++)
                 title_x_list_moving_a[i] = 13 * zoom;
+
+            InitializeTime = sw.ElapsedMilliseconds;
+            sw.Stop();
+            //InitializeTime = 0;
         }
         public void Draw()
         {
+            sw.Restart();
+
             Clear();
             Font font_artist, font_title;
             Brush brush;
@@ -214,7 +226,13 @@ namespace osu_live.Layer
                 }
                 ChangeStatus = ChangeStatus.ChangeFinshed;
                 Graphics.Dispose();
+                sw.Stop();
+                DrawTime = 0;
+                return;
             }
+
+            DrawTime = sw.ElapsedMilliseconds;
+            sw.Stop();
         }
 
         private void Clear()

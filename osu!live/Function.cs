@@ -11,6 +11,7 @@ namespace osu_live
 {
     class SceneListen
     {
+        static Image BG;
         public static Image GetMapBG(FileInfo fi)
         {
             string root = File.ReadAllText(fi.FullName);
@@ -57,7 +58,9 @@ namespace osu_live
                 }
                 catch
                 { }
-            return new Bitmap(Image.FromFile("bg.jpg"));
+            if (BG == null)
+                BG = new Bitmap("bg.jpg");
+            return BG;
         }
 
         public static string GetMapInfo(string root)

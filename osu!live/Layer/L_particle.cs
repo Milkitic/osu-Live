@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -13,6 +14,9 @@ namespace osu_live.Layer
         public Bitmap Bitmap { get; set; }
         public Graphics Graphic { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
+        public long InitializeTime { get; set; }
+        public long DrawTime { get; set; }
+        Stopwatch sw = new Stopwatch();
 
         int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
         float zoom = (float)Constant.Canvas.Zoom;
@@ -28,6 +32,8 @@ namespace osu_live.Layer
 
         public void Initialize()
         {
+            sw.Restart();
+
             Bitmap = new Bitmap(canvas_width, canvas_height);
             Graphic = Graphics.FromImage(Bitmap);
             Graphic.SmoothingMode = SmoothingMode.HighQuality;
@@ -48,10 +54,16 @@ namespace osu_live.Layer
 
                 color[i] = Color.FromArgb(rnd.Next(50, 150), rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
             }
+
+            InitializeTime = sw.ElapsedMilliseconds;
+            sw.Stop();
+            //InitializeTime = 0;
         }
 
         public void Draw()
         {
+            sw.Restart();
+
             Graphic.Clear(Color.Transparent);
             for (int i = 0; i < count; i++)
             {
@@ -75,6 +87,8 @@ namespace osu_live.Layer
                 if (border) Graphic.DrawPath(new Pen(Color.Black), gp);
             }
 
+            DrawTime = sw.ElapsedMilliseconds;
+            sw.Stop();
         }
     }
 }

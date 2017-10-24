@@ -41,16 +41,14 @@ namespace osu_live
         public Form1()
         {
             InitializeComponent();
+            Size = new Size((int)(1280 * Constant.Canvas.Zoom) + 16,
+             (int)(720 * Constant.Canvas.Zoom) + 39);
 
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             //开启双缓冲
             SetStyle(ControlStyles.DoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
-
-            Size = new Size((int)(1280 * Constant.Canvas.Zoom) + 16,
-                (int)(720 * Constant.Canvas.Zoom) + 39);
-
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -96,10 +94,19 @@ namespace osu_live
         Stopwatch ts_fps = new Stopwatch();
         Stopwatch ts2 = new Stopwatch();
         double fps = 0;
-        long d_bg, d_pa, d_fg;
+        int fps_count;
         private void action_display_Tick(object sender, EventArgs e)
         {
-            fps = 1000f / (ts_fps.ElapsedMilliseconds * 0.8);
+            if (fps_count == 0)
+            {
+                fps = 1000f / (ts_fps.ElapsedMilliseconds);
+                fps_count++;
+            }
+            else if (fps_count == 1)
+                fps_count = 0;
+            else
+                fps_count++;
+
             ts_fps.Restart();
 
             if (display != null) display.Dispose();
@@ -111,19 +118,11 @@ namespace osu_live
             display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
             display_g.Clear(Color.Transparent);
-
-            ts2.Restart();
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
-            d_bg = ts2.ElapsedMilliseconds;
-
-            ts2.Restart();
             display_g.DrawImage(l_PA.Bitmap, 0, 0);
-            d_pa = ts2.ElapsedMilliseconds;
 
             //display_g.DrawImage(l_PA.Bitmap, 0, 0);
-            ts2.Restart();
             display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
-            d_fg = ts2.ElapsedMilliseconds;
 
             Color a;
             if (fps >= 60)
@@ -137,6 +136,7 @@ namespace osu_live
             //display_g.DrawString(Math.Round(fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
             display_g.DrawString(string.Format("{0:0.0}", fps > 60 ? 60 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
 
+
             display_g.Dispose();
             canvas.Image = display;
             Form1_Resize(sender, e);
@@ -145,15 +145,21 @@ namespace osu_live
         private void Form1_Load(object sender, EventArgs e)
         {
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
-           // Form2 fm2 = new Form2();
+            // Form2 fm2 = new Form2();
             //fm2.Show();
-            //Size = new Size(800, 600);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = string.Format("{0}, {1} (resolution: {2}, {3}) d_bg: {4}, d_pa: {5}, d_fg: {6}",
-                ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height, d_bg, d_pa, d_fg);
+            Text = string.Format("{0}, {1} (resolution: {2}, {3}) Background: {4}ms{7} Foreground: {5}ms{8}, Particle: {6}ms{9}",
+                  ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height, l_BG.DrawTime, l_FG.DrawTime, l_PA.DrawTime,
+                    " (INIT " + l_BG.InitializeTime + "ms)",
+                    " (INIT " + l_FG.InitializeTime + "ms)",
+                    " (INIT " + l_PA.InitializeTime + "ms)");
+            //l_BG.InitializeTime != 0 ? " (INIT " + l_BG.InitializeTime + "ms)" : "",
+            //      l_FG.InitializeTime != 0 ? " (INIT " + l_FG.InitializeTime + "ms)" : "",
+            //      l_PA.InitializeTime != 0 ? " (INIT " + l_PA.InitializeTime + "ms)" : "");
+
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
@@ -190,8 +196,8 @@ namespace osu_live
                     idleStatus = IdleStatus.Playing;
                     return;
                 }
-             //idleStatus = IdleStatus.Playing;
-             //todo
+                //idleStatus = IdleStatus.Playing;
+                //todo
             }
             else
             {
