@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 namespace osu_live.Layer
 {
-    //效率就是一坨翔，我要退坑了
-
     public class L_particle
     {
         public Bitmap Bitmap { get; set; }
@@ -27,7 +25,7 @@ namespace osu_live.Layer
         int count = 150;
         bool rotate = true;
         bool border = false;
-        
+
         public void Initialize()
         {
             Bitmap = new Bitmap(canvas_width, canvas_height);
@@ -60,7 +58,7 @@ namespace osu_live.Layer
                 if (rec[i].Y + rec[i].Height < 0)
                     rec[i].Y = canvas_height;
                 rec[i].Y += y_move_spd[i];
-               degree[i] += degree_spd[i];
+                degree[i] += degree_spd[i];
 
                 GraphicsPath gp = new GraphicsPath();
                 gp.AddRectangle(rec[i]);

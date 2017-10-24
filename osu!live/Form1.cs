@@ -30,13 +30,14 @@ namespace osu_live
         Bitmap display;
         Graphics display_g;
         FileInfo map_changed_info;
+        FileInfo diff_playing_info;
 
         public static L_background l_BG = new L_background();
         public static L_foreground l_FG = new L_foreground();
         public static L_particle l_PA = new L_particle();
 
 
-        string root_old;
+        string root_old, diff;
         public Form1()
         {
             InitializeComponent();
@@ -144,8 +145,8 @@ namespace osu_live
         private void Form1_Load(object sender, EventArgs e)
         {
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
-            Form2 fm2 = new Form2();
-            fm2.Show();
+           // Form2 fm2 = new Form2();
+            //fm2.Show();
             //Size = new Size(800, 600);
         }
 
@@ -172,8 +173,25 @@ namespace osu_live
             }
             if (root.Trim() == "")
             {
-                //idleStatus = IdleStatus.Playing;
-                //todo
+                FileInfo tmp2 = new FileInfo(@"Files\l_DiffName");
+                if (diff_playing_info != null && tmp2.LastWriteTime == diff_playing_info.LastWriteTime)
+                    return;
+                diff_playing_info = tmp2;
+                try
+                {
+                    diff = File.ReadAllText(diff_playing_info.FullName);
+                }
+                catch
+                {
+                    return;
+                }
+                if (diff.Trim() != "")
+                {
+                    idleStatus = IdleStatus.Playing;
+                    return;
+                }
+             //idleStatus = IdleStatus.Playing;
+             //todo
             }
             else
             {

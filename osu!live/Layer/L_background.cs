@@ -21,6 +21,8 @@ namespace osu_live.Layer
         float preWidth = 0, preHeight = 0;
 
         Image newBackground, oldBackground;
+        Color color;
+        Random rnd = new Random();
         float Ratio { get => newBackground.Width / (float)newBackground.Height; }
 
         int canvas_height = Constant.Canvas.Height;
@@ -56,7 +58,8 @@ namespace osu_live.Layer
 
         public void Draw()
         {
-           if (!isFadeIn)
+            color = Color.FromArgb(rnd.Next(0, 50), rnd.Next(0, 50), rnd.Next(0, 50));
+            if (!isFadeIn)
             {
                 if (!flag)
                 {
@@ -64,8 +67,8 @@ namespace osu_live.Layer
                     flag = true;
                     Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
                 }
-                
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 255, 255, 255)), new Rectangle(0, 0, canvas_width, canvas_height));
+
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, canvas_width, canvas_height));
 
                 fade += fadeSpeed;
                 if (fade >= 255)
@@ -83,7 +86,7 @@ namespace osu_live.Layer
                     flag = false;
                 }
                 Graphics.DrawImage(newBackground, x, y, width, height);
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 255, 255, 255)), new Rectangle(0, 0, canvas_width, canvas_height));
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, canvas_width, canvas_height));
 
                 if (fade > 0)
                 {

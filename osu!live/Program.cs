@@ -14,7 +14,7 @@ namespace osu_live
         [STAThread]
         static void Main()
         {
-            Constant.Canvas.Zoom = 0.8;
+            Constant.Canvas.Zoom = 0.7;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
