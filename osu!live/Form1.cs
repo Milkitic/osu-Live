@@ -20,7 +20,7 @@ namespace osu_live
         int canvas_width = Constant.Canvas.Width,
             canvas_height = Constant.Canvas.Height;
         float zoom = (float)Constant.Canvas.Zoom;
-        bool showFPS = true;
+        bool showFPS = false;
 
         // status
         public static IdleStatus idleStatus = IdleStatus.Stopped;
