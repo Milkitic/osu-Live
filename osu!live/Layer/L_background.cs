@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -55,15 +56,16 @@ namespace osu_live.Layer
 
         public void Draw()
         {
-            Graphics.Clear(Color.Transparent);
-            if (!isFadeIn)
+           if (!isFadeIn)
             {
                 if (!flag)
                 {
+                    Graphics.Clear(Color.Transparent);
                     flag = true;
+                    Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
                 }
-                Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
+                
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 255, 255, 255)), new Rectangle(0, 0, canvas_width, canvas_height));
 
                 fade += fadeSpeed;
                 if (fade >= 255)
@@ -76,12 +78,12 @@ namespace osu_live.Layer
             {
                 if (flag)
                 {
+                    Graphics.Clear(Color.Transparent);
                     GetBGSize();
                     flag = false;
                 }
-
                 Graphics.DrawImage(newBackground, x, y, width, height);
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 0, 0, 0)), new Rectangle(0, 0, canvas_width, canvas_height));
+                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, 255, 255, 255)), new Rectangle(0, 0, canvas_width, canvas_height));
 
                 if (fade > 0)
                 {

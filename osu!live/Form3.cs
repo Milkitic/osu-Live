@@ -147,7 +147,7 @@ namespace osu_live
             Draw();
             compute_delay = ts2.ElapsedMilliseconds;
 
-            this.Text = string.Format("Particles: {0}, Refresh: {1}ms, Draw: {2}ms. FPS: {3}", count, timer_delay, compute_delay, Math.Round((1000f / timer_delay), 2));
+            this.Text = string.Format("Particles: {0}, Refresh: {1}ms, Draw: {2}ms. FPS: {3}", count, timer_delay, compute_delay, Math.Round((1000f / timer_delay), 0));
         }
 
         private void button2_Click(object sender, EventArgs e)

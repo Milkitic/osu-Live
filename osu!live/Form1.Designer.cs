@@ -47,13 +47,12 @@
             // 
             // canvas
             // 
-            this.canvas.BackColor = System.Drawing.Color.Black;
+            this.canvas.BackColor = System.Drawing.Color.Transparent;
             this.canvas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.canvas.Dock = System.Windows.Forms.DockStyle.Fill;
             this.canvas.Location = new System.Drawing.Point(0, 0);
             this.canvas.Name = "canvas";
             this.canvas.Size = new System.Drawing.Size(535, 286);
-            this.canvas.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.canvas.TabIndex = 0;
             this.canvas.TabStop = false;
             // 
@@ -69,7 +68,7 @@
             // 
             // action_display
             // 
-            this.action_display.Interval = 1;
+            this.action_display.Interval = 10;
             this.action_display.Tick += new System.EventHandler(this.action_display_Tick);
             // 
             // action_change_info

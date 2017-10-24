@@ -12,81 +12,71 @@ namespace osu_live.Layer
 
     public class L_particle
     {
-        //public Bitmap Bitmap { get; set; }
-        public Bitmap[] Bitmap { get; set; }
-        public Graphics[] Graphic { get; set; }
+        public Bitmap Bitmap { get; set; }
+        public Graphics Graphic { get; set; }
         public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
 
+        int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
+        float zoom = (float)Constant.Canvas.Zoom;
+
         RectangleF[] rec;
+        Color[] color;
         float[] degree = { 0 }, degree_spd, y_move_spd;
-        int canvas_height = (int)(Constant.Canvas.Height * 0.5), canvas_width = (int)(Constant.Canvas.Width * 0.2);
         Random rnd = new Random();
+
+        int count = 150;
+        bool rotate = true;
+        bool border = false;
+        
         public void Initialize()
         {
-            Graphic = new Graphics[30];
-            Bitmap = new Bitmap[Graphic.Length];
-            rec = new RectangleF[Graphic.Length];
-            degree = new float[Graphic.Length];
-            degree_spd = new float[Graphic.Length];
-            y_move_spd = new float[Graphic.Length];
+            Bitmap = new Bitmap(canvas_width, canvas_height);
+            Graphic = Graphics.FromImage(Bitmap);
+            Graphic.SmoothingMode = SmoothingMode.HighQuality;
 
-            //Bitmap = new Bitmap(canvas_width, canvas_height);
-            //↓严重低下部分
-            for (int i = 0; i < Graphic.Length; i++)
+            //graphic.CompositingMode = CompositingMode.SourceOver;
+
+            rec = new RectangleF[count];
+            degree = new float[count];
+            degree_spd = new float[count];
+            y_move_spd = new float[count];
+            color = new Color[count];
+            for (int i = 0; i < count; i++)
             {
-                Bitmap[i] = new Bitmap(canvas_width, canvas_height);
-                Graphic[i] = Graphics.FromImage(Bitmap[i]);
-                Graphic[i].SmoothingMode = SmoothingMode.AntiAlias;
-                Graphic[i].CompositingQuality = CompositingQuality.HighSpeed;
-
                 int border = rnd.Next(10, 50);
-                rec[i] = new RectangleF(rnd.Next(0, 1280), rnd.Next(0, 720), border, border);
-                degree_spd[i] = rnd.Next(-10, 10);
-                y_move_spd[i] = rnd.Next(-10, -3);
+                rec[i] = new RectangleF(rnd.Next(-20, canvas_width), rnd.Next(0, canvas_height), border * zoom, border * zoom);
+                degree_spd[i] = rnd.Next(-5, 5);
+                y_move_spd[i] = rnd.Next(-5, -2) * zoom;
+
+                color[i] = Color.FromArgb(rnd.Next(50, 150), rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
             }
         }
 
         public void Draw()
         {
-            //return;
-            for (int i = 0; i < Graphic.Length; i++)
+            Graphic.Clear(Color.Transparent);
+            for (int i = 0; i < count; i++)
             {
                 if (rec[i].Y + rec[i].Height < 0)
                     rec[i].Y = canvas_height;
                 rec[i].Y += y_move_spd[i];
-                degree[i] += degree_spd[i];
+               degree[i] += degree_spd[i];
 
-                try
+                GraphicsPath gp = new GraphicsPath();
+                gp.AddRectangle(rec[i]);
+                //gp.AddString("cnbb", new FontFamily("arial"), FontStyle.Regular, 12, rec[i].Location, StringFormatFlags.NoClip);
+                if (rotate)
                 {
-                    //Graphic[i] = Graphics.FromImage(Bitmap[i]);
-                    Graphic[i].Clear(Color.Transparent);
-
-                    Graphic[i].TranslateTransform(rec[i].Width / 2 + rec[i].Left, rec[i].Height / 2 + rec[i].Top);
-                    Graphic[i].RotateTransform(degree[i]);
-                    Graphic[i].TranslateTransform(-rec[i].Width / 2 - rec[i].Left, -rec[i].Height / 2 - rec[i].Top);
-
-                    Graphic[i].FillRectangle(new SolidBrush(Color.FromArgb(64, 123, 53, 230)), rec[i]);
-                    Graphic[i].ResetTransform();
-                    //Graphic[i].Dispose();
+                    Matrix m = new Matrix();
+                    m.Translate(rec[i].Width / 2 + rec[i].Left, rec[i].Height / 2 + rec[i].Top);
+                    m.Rotate(degree[i]);
+                    m.Translate(-rec[i].Width / 2 - rec[i].Left, -rec[i].Height / 2 - rec[i].Top);
+                    gp.Transform(m);
                 }
-                catch (InvalidOperationException)
-                {
-
-                }
+                Graphic.FillPath(new SolidBrush(color[i]), gp);
+                if (border) Graphic.DrawPath(new Pen(Color.Black), gp);
             }
-            //degree -= 3;
-            ////rec.Y -= 2;
-            ////rec.X += 1;
-            //Graphic.Clear(Color.Transparent);
-            //if (rec.Y + rec.Height < 0) rec.Y = canvas_height;
-            //rec.Y -= 3;
 
-            //Graphic.TranslateTransform(rec.Width / 2 + rec.Left, rec.Height / 2 + rec.Top);
-            //Graphic.RotateTransform(degree);
-            //Graphic.TranslateTransform(-rec.Width / 2 - rec.Left, -rec.Height / 2 - rec.Top);
-
-            //Graphic.FillRectangle(new SolidBrush(Color.FromArgb(64, 123, 53, 230)), rec);
-            //Graphic.ResetTransform();
         }
     }
 }

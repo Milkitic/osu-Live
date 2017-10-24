@@ -49,7 +49,7 @@ namespace osu_live.Layer
             //
 
             int font_panel_y = (int)(canvas_height * (600d / 720));
-            Rec_Panel = new Rectangle(0, font_panel_y, canvas_width, canvas_height - font_panel_y);
+            Rec_Panel = new Rectangle(-1, font_panel_y, canvas_width + 1, canvas_height - font_panel_y);
             if (Bitmap == null) Bitmap = new Bitmap(Rec_Panel.Width, Rec_Panel.Height);
 
             Graphics = Graphics.FromImage(Bitmap);
@@ -213,6 +213,7 @@ namespace osu_live.Layer
                     Graphics.DrawString(chara, font_title, brush, title_x_list_std[i], title_y);
                 }
                 ChangeStatus = ChangeStatus.ChangeFinshed;
+                Graphics.Dispose();
             }
         }
 
