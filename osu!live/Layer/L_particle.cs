@@ -38,8 +38,6 @@ namespace osu_live.Layer
             Graphic = Graphics.FromImage(Bitmap);
             Graphic.SmoothingMode = SmoothingMode.HighQuality;
 
-            //graphic.CompositingMode = CompositingMode.SourceOver;
-
             rec = new RectangleF[count];
             degree = new float[count];
             degree_spd = new float[count];

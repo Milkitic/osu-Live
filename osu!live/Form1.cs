@@ -20,6 +20,7 @@ namespace osu_live
         int canvas_width = Constant.Canvas.Width,
             canvas_height = Constant.Canvas.Height;
         float zoom = (float)Constant.Canvas.Zoom;
+        bool showFPS = true;
 
         // status
         public static IdleStatus idleStatus = IdleStatus.Stopped;
@@ -36,6 +37,7 @@ namespace osu_live
         public static L_foreground l_FG = new L_foreground();
         public static L_particle l_PA = new L_particle();
 
+        long refreshDelay;
 
         string root_old, diff;
         public Form1()
@@ -49,6 +51,20 @@ namespace osu_live
             SetStyle(ControlStyles.DoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
+        }
+
+        private void DrawFPS()
+        {
+            Color a;
+            if (fps >= 60)
+                a = Color.FromArgb(172, 220, 25);
+            else if (fps >= 45)
+                a = Color.FromArgb(255, 204, 34);
+            else
+                a = Color.FromArgb(255, 149, 24);
+
+            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1196 * zoom, 698 * zoom, canvas_width, canvas_height));
+            display_g.DrawString(string.Format("{0:0.0}", fps > 60 ? 60 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -92,14 +108,16 @@ namespace osu_live
             l_BG.Draw();
         }
         Stopwatch ts_fps = new Stopwatch();
-        Stopwatch ts2 = new Stopwatch();
         double fps = 0;
         int fps_count;
+        float angle = 0;
+        float scale = 0, scale_r;
         private void action_display_Tick(object sender, EventArgs e)
         {
             if (fps_count == 0)
             {
-                fps = 1000f / (ts_fps.ElapsedMilliseconds);
+                refreshDelay = ts_fps.ElapsedMilliseconds;
+                fps = 1000f / (refreshDelay);
                 fps_count++;
             }
             else if (fps_count == 1)
@@ -113,33 +131,29 @@ namespace osu_live
             display = new Bitmap(canvas_width, canvas_height);
             display_g = Graphics.FromImage(display);
 
-            display_g.SmoothingMode = SmoothingMode.AntiAlias;
+            display_g.SmoothingMode = SmoothingMode.HighQuality;
             display_g.CompositingQuality = CompositingQuality.Invalid;
-            display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+            scale_r = (float)(Math.Cos(scale * Math.PI / 180) * 0.25 + 0.75);
+            display_g.ScaleTransform(scale_r, scale_r);
+            display_g.TranslateTransform((canvas_width - canvas_width * scale_r) / 2, (canvas_height - canvas_height * scale_r) / 2);
+
+            display_g.TranslateTransform(canvas_width / 2, canvas_height / 2);
+            display_g.RotateTransform(angle);
+            display_g.TranslateTransform(-canvas_width / 2, -canvas_height / 2);
 
             display_g.Clear(Color.Transparent);
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
             display_g.DrawImage(l_PA.Bitmap, 0, 0);
-
-            //display_g.DrawImage(l_PA.Bitmap, 0, 0);
             display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
-
-            Color a;
-            if (fps >= 60)
-                a = Color.FromArgb(172, 220, 25);
-            else if (fps >= 45)
-                a = Color.FromArgb(255, 204, 34);
-            else
-                a = Color.FromArgb(255, 149, 24);
-
-            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1196 * zoom, 698 * zoom, canvas_width, canvas_height));
-            //display_g.DrawString(Math.Round(fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
-            display_g.DrawString(string.Format("{0:0.0}", fps > 60 ? 60 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
-
+            if (showFPS) DrawFPS();
 
             display_g.Dispose();
             canvas.Image = display;
             Form1_Resize(sender, e);
+            angle += 0.5f;
+            scale += 1;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -151,15 +165,12 @@ namespace osu_live
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = string.Format("{0}, {1} (resolution: {2}, {3}) Background: {4}ms{7} Foreground: {5}ms{8}, Particle: {6}ms{9}",
-                  ClientRectangle.Width, ClientRectangle.Height, canvas_width, canvas_height, l_BG.DrawTime, l_FG.DrawTime, l_PA.DrawTime,
-                    " (INIT " + l_BG.InitializeTime + "ms)",
-                    " (INIT " + l_FG.InitializeTime + "ms)",
-                    " (INIT " + l_PA.InitializeTime + "ms)");
-            //l_BG.InitializeTime != 0 ? " (INIT " + l_BG.InitializeTime + "ms)" : "",
-            //      l_FG.InitializeTime != 0 ? " (INIT " + l_FG.InitializeTime + "ms)" : "",
-            //      l_PA.InitializeTime != 0 ? " (INIT " + l_PA.InitializeTime + "ms)" : "");
-
+            Text = string.Format("({0}, {1}) Background: {2}ms{5} Foreground: {3}ms{6}, Particle: {4}ms{7}. Refresh: {8}ms",
+                   canvas_width, canvas_height, l_BG.DrawTime, l_FG.DrawTime, l_PA.DrawTime,
+                   l_BG.InitializeTime != 0 ? " (INIT " + l_BG.InitializeTime + "ms)" : "",
+                   l_FG.InitializeTime != 0 ? " (INIT " + l_FG.InitializeTime + "ms)" : "",
+                   l_PA.InitializeTime != 0 ? " (INIT " + l_PA.InitializeTime + "ms)" : "",
+                   refreshDelay);
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
@@ -194,10 +205,9 @@ namespace osu_live
                 if (diff.Trim() != "")
                 {
                     idleStatus = IdleStatus.Playing;
+                    //todo
                     return;
                 }
-                //idleStatus = IdleStatus.Playing;
-                //todo
             }
             else
             {
