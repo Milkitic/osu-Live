@@ -27,13 +27,15 @@ namespace osu_live.Layer
         Random rnd = new Random();
 
         int count = 150;
-        bool rotate = true;
-        bool border = false;
-
-        public void Initialize()
+        public bool Rotate { get; set; } = true;
+        public bool Border { get; set; } = false;
+        bool isInit = false;
+        bool isDraw = false;
+        public void Initialize(int count)
         {
+            this.count = count;
             sw.Restart();
-
+            isInit = true;
             Bitmap = new Bitmap(canvas_width, canvas_height);
             Graphic = Graphics.FromImage(Bitmap);
             Graphic.SmoothingMode = SmoothingMode.HighQuality;
@@ -54,12 +56,14 @@ namespace osu_live.Layer
             }
 
             InitializeTime = sw.ElapsedMilliseconds;
+            isInit = false;
             sw.Stop();
             //InitializeTime = 0;
         }
 
         public void Draw()
         {
+            if (isInit) return;
             sw.Restart();
 
             Graphic.Clear(Color.Transparent);
@@ -73,7 +77,7 @@ namespace osu_live.Layer
                 GraphicsPath gp = new GraphicsPath();
                 gp.AddRectangle(rec[i]);
                 //gp.AddString("cnbb", new FontFamily("arial"), FontStyle.Regular, 12, rec[i].Location, StringFormatFlags.NoClip);
-                if (rotate)
+                if (Rotate)
                 {
                     Matrix m = new Matrix();
                     m.Translate(rec[i].Width / 2 + rec[i].Left, rec[i].Height / 2 + rec[i].Top);
@@ -82,7 +86,7 @@ namespace osu_live.Layer
                     gp.Transform(m);
                 }
                 Graphic.FillPath(new SolidBrush(color[i]), gp);
-                if (border) Graphic.DrawPath(new Pen(Color.Black), gp);
+                if (Border) Graphic.DrawPath(new Pen(Color.Black), gp);
             }
 
             DrawTime = sw.ElapsedMilliseconds;

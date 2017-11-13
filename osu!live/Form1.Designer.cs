@@ -55,6 +55,7 @@
             this.canvas.Size = new System.Drawing.Size(535, 286);
             this.canvas.TabIndex = 0;
             this.canvas.TabStop = false;
+            this.canvas.DoubleClick += new System.EventHandler(this.canvas_DoubleClick);
             // 
             // timer_status_change
             // 
@@ -92,6 +93,7 @@
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.Resize += new System.EventHandler(this.Form1_Resize);
@@ -107,7 +109,7 @@
         private System.Windows.Forms.Timer action_change_bg;
         private System.Windows.Forms.Timer action_display;
         private System.Windows.Forms.Timer action_change_info;
-        private System.Windows.Forms.Timer action_particle;
+        public System.Windows.Forms.Timer action_particle;
     }
 }
 

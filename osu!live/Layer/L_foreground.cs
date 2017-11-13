@@ -62,11 +62,11 @@ namespace osu_live.Layer
             ChangeStatus = ChangeStatus.ReadyToChange;
 
             oldTitle = newTitle;
-            newTitle = SceneListen.GetMapInfo(@"Files\l_TitleUnicode");
+            newTitle = SceneListen.GetMapInfo(@"stream\Files\l_TitleUnicode");
             if (oldTitle == null) oldTitle = newTitle;
 
             oldArtist = newArtist;
-            newArtist = SceneListen.GetMapInfo(@"Files\l_ArtistUnicode");
+            newArtist = SceneListen.GetMapInfo(@"stream\Files\l_ArtistUnicode");
             if (oldArtist == null) oldArtist = newArtist;
 
             artist_list = newArtist.ToCharArray();

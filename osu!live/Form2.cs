@@ -42,15 +42,42 @@ namespace osu_live
                 c = "Lucas Fader";
                 flag = true;
             }
-            File.WriteAllText(@"Files\l_OsuFileLocation", a);
-            File.WriteAllText(@"Files\l_TitleUnicode", b);
-            File.WriteAllText(@"Files\l_ArtistUnicode", c);
+            File.WriteAllText(@"stream\Files\l_OsuFileLocation", a);
+            File.WriteAllText(@"stream\Files\l_TitleUnicode", b);
+            File.WriteAllText(@"stream\Files\l_ArtistUnicode", c);
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             Form3 fm3 = new Form3();
             fm3.Show();
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            Form1.l_PA.Border = checkBox1.Checked;
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            Form1.l_PA.Rotate = checkBox2.Checked;
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            Form1.ShowFPS = checkBox3.Checked;
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void trackBar1_MouseUp(object sender, MouseEventArgs e)
+        {
+            //Form1..Enabled = false;
+            Form1.l_PA.Initialize(trackBar1.Value);
+            //timer1.Enabled = true;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -66,7 +93,7 @@ namespace osu_live
             ratio = (float)a.Width / canvas2.Width;
             a.Width = canvas2.Width;
             a.Height = (int)(a.Height / ratio);
-            a.Y= (int)(a.Y / ratio);
+            a.Y = (int)(a.Y / ratio);
             display_g_2 = canvas2.CreateGraphics();
             display_g_2.Clear(Color.White);
             display_g_2.DrawImage(Form1.l_FG.Bitmap, a);

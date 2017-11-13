@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -68,11 +69,13 @@
       <DependentUpon>Form3.cs</DependentUpon>
     </Compile>
     <Compile Include="Function.cs" />
+    <Compile Include="GaussianBlur.cs" />
     <Compile Include="Layer\L_background.cs" />
     <Compile Include="Layer\L_foreground.cs" />
     <Compile Include="Layer\L_particle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RawBitmap.cs" />
     <Compile Include="Status.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

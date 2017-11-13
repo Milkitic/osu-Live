@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Blur;
+using System.Threading;
 
 namespace osu_live.Layer
 {
@@ -52,8 +54,9 @@ namespace osu_live.Layer
 
             ChangeStatus = ChangeStatus.ReadyToChange;
 
-            oldBackground = newBackground;
+            //oldBackground = newBackground;
             newBackground = SceneListen.GetMapBG(MapInfo);
+
             if (oldBackground == null)
                 oldBackground = newBackground;
 
@@ -78,7 +81,10 @@ namespace osu_live.Layer
                 {
                     Graphics.Clear(Color.Transparent);
                     flag = true;
-                    Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
+                    lock (oldBackground)
+                    {
+                        Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
+                    }
                 }
 
                 Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, canvas_width, canvas_height));
@@ -111,14 +117,34 @@ namespace osu_live.Layer
                 {
                     ChangeStatus = ChangeStatus.ChangeFinshed;
                     Graphics.Dispose();
+
+                    Thread t1 = new Thread(Blur);
+                    t1.Start();
                     sw.Stop();
                     DrawTime = 0;
                     return;
                 }
             }
-
             DrawTime = sw.ElapsedMilliseconds;
             sw.Stop();
+        }
+
+        private void Blur()
+        {
+            lock (oldBackground)
+            {
+                if (oldBackground != null)
+                {
+                    var GB = new GaussianBlur(5);
+                    oldBackground = newBackground;
+                    try
+                    {
+                        oldBackground = new Bitmap(GB.ProcessImage(new Bitmap(oldBackground, oldBackground.Width / 2, oldBackground.Height / 2))
+                            , oldBackground.Width, oldBackground.Height);
+                    }
+                    catch { }
+                }
+            }
         }
 
         private void GetBGSize()

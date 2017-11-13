@@ -11,6 +11,22 @@ namespace osu_live
 {
     class SceneListen
     {
+        public static List<Image> BGList { get; set; } = new List<Image>();
+
+        public static void LoadBG()
+        {
+            DirectoryInfo di = new DirectoryInfo("BG");
+            FileInfo[] files = di.GetFiles();
+            foreach (var file in files)
+            {
+                if (file.Extension.ToLower() == ".png" || file.Extension.ToLower() == ".jpg" || file.Extension.ToLower() == ".jpeg")
+                {
+                    BGList.Add(new Bitmap(file.FullName));
+                }
+            }
+
+        }
+        static Random rnd = new Random();
         static Image BG;
         public static Image GetMapBG(FileInfo fi)
         {
@@ -57,9 +73,15 @@ namespace osu_live
                     return new Bitmap(new FileInfo(root).DirectoryName + "\\" + bgName);
                 }
                 catch
-                { }
+                {
+                    BG = null;
+                }
+            else BG = null;
             if (BG == null)
-                BG = new Bitmap("bg.jpg");
+            {
+                if (BGList.Count > 1) BG = BGList[rnd.Next(0, BGList.Count )];
+                else BG = BGList[0];
+            }
             return BG;
         }
 

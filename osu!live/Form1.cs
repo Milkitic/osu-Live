@@ -20,7 +20,7 @@ namespace osu_live
         int canvas_width = Constant.Canvas.Width,
             canvas_height = Constant.Canvas.Height;
         float zoom = (float)Constant.Canvas.Zoom;
-        bool showFPS = false;
+        public static bool ShowFPS { get; set; } = false;
 
         // status
         public static IdleStatus idleStatus = IdleStatus.Stopped;
@@ -110,8 +110,9 @@ namespace osu_live
         Stopwatch ts_fps = new Stopwatch();
         double fps = 0;
         int fps_count;
-        float angle = 0;
+        float angle = 0, angle_r;
         float scale = 0, scale_r;
+        Random rnd = new Random();
         private void action_display_Tick(object sender, EventArgs e)
         {
             if (fps_count == 0)
@@ -135,34 +136,66 @@ namespace osu_live
             display_g.CompositingQuality = CompositingQuality.Invalid;
             display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-            scale_r = (float)(Math.Cos(scale * Math.PI / 180) * 0.25 + 0.75);
+            scale_r = (float)(Math.Cos(scale * Math.PI / 180) * 0.01 + 1.013);
+            angle_r = (float)(Math.Cos(angle * Math.PI / 180) * 0.2);
             display_g.ScaleTransform(scale_r, scale_r);
             display_g.TranslateTransform((canvas_width - canvas_width * scale_r) / 2, (canvas_height - canvas_height * scale_r) / 2);
 
             display_g.TranslateTransform(canvas_width / 2, canvas_height / 2);
-            display_g.RotateTransform(angle);
+            display_g.RotateTransform(angle_r);
             display_g.TranslateTransform(-canvas_width / 2, -canvas_height / 2);
 
             display_g.Clear(Color.Transparent);
             display_g.DrawImage(l_BG.Bitmap, 0, 0);
             display_g.DrawImage(l_PA.Bitmap, 0, 0);
             display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
-            if (showFPS) DrawFPS();
+            if (ShowFPS) DrawFPS();
 
             display_g.Dispose();
             canvas.Image = display;
             Form1_Resize(sender, e);
-            angle += 0.5f;
-            scale += 1;
+            angle += (float)(1 + rnd.NextDouble() * 2);
+            scale += (float)(0.5 + rnd.NextDouble() * 0.5);
+        }
+
+        private void canvas_DoubleClick(object sender, EventArgs e)
+        {
+            Form2 fm2 = new Form2();
+            fm2.Show();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            ProcessStart();
+            SceneListen.LoadBG();
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
-            // Form2 fm2 = new Form2();
-            //fm2.Show();
         }
 
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            proc.Exited -= new EventHandler(Process_Exited);
+            proc.Kill();
+        }
+        Process proc;
+        void ProcessStart()
+        {
+            try
+            {
+                //proc.StartInfo.UseShellExecute = false;
+                //proc.StartInfo.CreateNoWindow = true;
+                //proc.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                //proc.StartInfo.FileName = "stream\\osu!StreamCompanion.exe";
+                proc = Process.Start("stream\\osu!StreamCompanion.exe");
+
+                proc.EnableRaisingEvents = true;
+                proc.Exited += new EventHandler(Process_Exited);
+            }
+            catch { }
+        }
+        void Process_Exited(object sender, EventArgs e)
+        {
+            ProcessStart();
+        }
         private void Form1_Resize(object sender, EventArgs e)
         {
             Text = string.Format("({0}, {1}) Background: {2}ms{5} Foreground: {3}ms{6}, Particle: {4}ms{7}. Refresh: {8}ms",
@@ -175,7 +208,7 @@ namespace osu_live
 
         private void timer_status_check_Tick(object sender, EventArgs e)
         {
-            FileInfo tmp = new FileInfo(@"Files\l_OsuFileLocation");
+            FileInfo tmp = new FileInfo(@"stream\Files\l_OsuFileLocation");
             if (map_changed_info != null && tmp.LastWriteTime == map_changed_info.LastWriteTime)
                 return;
             map_changed_info = tmp;
@@ -190,7 +223,7 @@ namespace osu_live
             }
             if (root.Trim() == "")
             {
-                FileInfo tmp2 = new FileInfo(@"Files\l_DiffName");
+                FileInfo tmp2 = new FileInfo(@"stream\Files\l_DiffName");
                 if (diff_playing_info != null && tmp2.LastWriteTime == diff_playing_info.LastWriteTime)
                     return;
                 diff_playing_info = tmp2;
@@ -219,12 +252,14 @@ namespace osu_live
                 if (!timer_status_change.Enabled)
                 {
                     //first run
-                    l_PA.Initialize();
+                    l_PA.Initialize(120);
                 }
                 else
                 {
                     l_BG.Graphics.Dispose();
                     l_FG.Graphics.Dispose();
+                    string sentence = "214,3215,663";
+                    string[] word = sentence.Split(',');
                 }
                 l_BG.Initialize(map_changed_info);
                 l_FG.Initialize(map_changed_info);
