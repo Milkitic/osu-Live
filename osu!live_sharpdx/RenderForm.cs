@@ -13,11 +13,10 @@ using WIC = SharpDX.WIC;
 using DW = SharpDX.DirectWrite;
 using DXGI = SharpDX.DXGI;
 using Mathe = SharpDX.Mathematics.Interop;
-using System.Threading;
 
 namespace osu_live_sharpdx
 {
-    public partial class Form1 : Form
+    public partial class RenderForm : Form
     {
         Layer.Background layerBack;
 
@@ -29,8 +28,13 @@ namespace osu_live_sharpdx
         public static D2D.RenderTarget RenderTarget { get; set; }
 
         float g_width, g_height;
-        
-        public Form1()
+
+        public static new int Left { get; private set; }
+        public static new int Top { get; private set; }
+        public static new int Right { get; private set; }
+        public static new int Bottom { get; private set; }
+
+        public RenderForm()
         {
             InitializeComponent();
             Load += LoadTarget;
@@ -55,7 +59,7 @@ namespace osu_live_sharpdx
             {
                 Hwnd = this.Handle,
                 PixelSize = new DX.Size2(this.ClientSize.Width, this.ClientSize.Height),
-                PresentOptions = D2D.PresentOptions.None
+                PresentOptions = D2D.PresentOptions.Immediately
             };
 
             var renderProp = new D2D.RenderTargetProperties(D2D.RenderTargetType.Default, pixelFormat,
@@ -76,6 +80,12 @@ namespace osu_live_sharpdx
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             layerBack.Draw();
+            int width = Screen.PrimaryScreen.Bounds.Width,
+                height = Screen.PrimaryScreen.Bounds.Height;
+            Left = (int)(Location.X + (Width - ClientSize.Width) / 2f);
+            Right = Left + ClientSize.Width;
+            Top = (int)(Location.Y + (Height - ClientSize.Height) - 8);
+            Bottom = Top + ClientSize.Height;
 
             this.Invalidate();
         }
@@ -86,9 +96,12 @@ namespace osu_live_sharpdx
             {
                 var abc = new Mathe.RawMatrix3x2
                 {
-                    M11 = g_width / ClientSize.Width, M12 = 0,
-                    M21 = 0, M22 = g_height / ClientSize.Height,
-                    M31 = 0, M32 = 0
+                    M11 = g_width / ClientSize.Width,
+                    M12 = 0,
+                    M21 = 0,
+                    M22 = g_height / ClientSize.Height,
+                    M31 = 0,
+                    M32 = 0
                 };
                 RenderTarget.Transform = abc;
             }

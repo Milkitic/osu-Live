@@ -10,21 +10,25 @@ using DW = SharpDX.DirectWrite;
 using DXGI = SharpDX.DXGI;
 using Mathe = SharpDX.Mathematics.Interop;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace osu_live_sharpdx.Layer
 {
     class Background : ILayer
     {
+        Stopwatch sw;
         // Text formats
         DW.TextFormat textFormat;
 
         // Brushes
         D2D.Brush whiteBrush, redBrush, blueBrush1, blueBrush2, blueBrush3;
 
-        D2D.StrokeStyleProperties strokeStyleProperties = new D2D.StrokeStyleProperties();
-
         D2D.StrokeStyle strokeStyle;
         D2D.StrokeStyleProperties strokeProperties;
+
+        D2D.StrokeStyle strokeStyle2;
+        D2D.StrokeStyleProperties strokeProperties2;
         Random rnd = new Random();
 
         private Size ClientSize { get; set; }
@@ -34,14 +38,14 @@ namespace osu_live_sharpdx.Layer
             ClientSize = clientSize;
 
             // Create brushes
-            whiteBrush = new D2D.SolidColorBrush(Form1.RenderTarget, new Mathe.RawColor4(1, 1, 1, 1));
-            redBrush = new D2D.SolidColorBrush(Form1.RenderTarget, new Mathe.RawColor4(0.99f, 0.16f, 0.3f, 1));
-            blueBrush1 = new D2D.SolidColorBrush(Form1.RenderTarget, new Mathe.RawColor4(0.3f, 0.4f, 0.9f, 1));
-            blueBrush2 = new D2D.SolidColorBrush(Form1.RenderTarget, new Mathe.RawColor4(0.45f, 0.6f, 0.95f, 1));
-            blueBrush3 = new D2D.SolidColorBrush(Form1.RenderTarget, new Mathe.RawColor4(0.6f, 0.8f, 1f, 1));
+            whiteBrush = new D2D.SolidColorBrush(RenderForm.RenderTarget, new Mathe.RawColor4(1, 1, 1, 1));
+            redBrush = new D2D.SolidColorBrush(RenderForm.RenderTarget, new Mathe.RawColor4(0.99f, 0.16f, 0.3f, 1));
+            blueBrush1 = new D2D.SolidColorBrush(RenderForm.RenderTarget, new Mathe.RawColor4(0.3f, 0.4f, 0.9f, 1));
+            blueBrush2 = new D2D.SolidColorBrush(RenderForm.RenderTarget, new Mathe.RawColor4(0.45f, 0.6f, 0.95f, 1));
+            blueBrush3 = new D2D.SolidColorBrush(RenderForm.RenderTarget, new Mathe.RawColor4(0.6f, 0.8f, 1f, 1));
 
             // Create text formats
-            textFormat = new DW.TextFormat(Form1.FactoryWrite, "Arial", 36);
+            textFormat = new DW.TextFormat(RenderForm.FactoryWrite, "Arial", 36);
 
             g_center = new PointF(ClientSize.Width / 2f, ClientSize.Height / 2f);
 
@@ -50,7 +54,18 @@ namespace osu_live_sharpdx.Layer
                 StartCap = D2D.CapStyle.Round,
                 EndCap = D2D.CapStyle.Triangle
             };
-            strokeStyle = new D2D.StrokeStyle(Form1.Factory, strokeProperties);
+            strokeStyle = new D2D.StrokeStyle(RenderForm.Factory, strokeProperties);
+
+            strokeProperties2 = new D2D.StrokeStyleProperties
+            {
+                StartCap = D2D.CapStyle.Round,
+                EndCap = D2D.CapStyle.Round,
+                DashStyle = D2D.DashStyle.Dash
+            };
+            strokeStyle2 = new D2D.StrokeStyle(RenderForm.Factory, strokeProperties2);
+
+            sw = new Stopwatch();
+            sw.Start();
         }
 
         public void Measure()
@@ -59,9 +74,9 @@ namespace osu_live_sharpdx.Layer
             float degMili, degSec, degMin, degHour;
             float radMili, radSec, radMin, radHour;
             degMili = (DateTime.Now.Millisecond / 1000f * 360 - 90);
-            degSec = (DateTime.Now.Second / 60f * 360 - 90);// + degMili / 60f;
-            degMin = (DateTime.Now.Minute / 60f * 360 - 90) + degSec / 60f;
-            degHour = (DateTime.Now.Hour / 60f * 360 - 90) + degMin / 60f;
+            degSec = (DateTime.Now.Second / 60f * 360 - 90) + degMili / 60f;
+            degMin = (DateTime.Now.Minute / 60f * 360 - 90) + degSec / 360f * 6;
+            degHour = (DateTime.Now.Hour / 12f * 360 - 90) + degMin / 360f * 30;
             radMili = degMili / 180 * (float)Math.PI;
             radSec = degSec / 180 * (float)Math.PI;
             radMin = degMin / 180 * (float)Math.PI;
@@ -75,34 +90,44 @@ namespace osu_live_sharpdx.Layer
 
         public void Draw()
         {
-            //System.Threading.Thread.Sleep(0);
+            //System.Threading.Thread.Sleep(100);
 
             Measure();
             // Begin rendering
-            Form1.RenderTarget.BeginDraw();
-            Form1.RenderTarget.Clear(new Mathe.RawColor4(0, 0, 0, 1));
+            RenderForm.RenderTarget.BeginDraw();
+            RenderForm.RenderTarget.Clear(new Mathe.RawColor4(0, 0, 0, 1));
 
 
-            Form1.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
                 new Mathe.RawVector2(g_hour.X, g_hour.Y), blueBrush1, 10, strokeStyle);
-            Form1.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
                 new Mathe.RawVector2(g_min.X, g_min.Y), blueBrush2, 5, strokeStyle);
-            Form1.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
                 new Mathe.RawVector2(g_sec.X, g_sec.Y), blueBrush3, 2, strokeStyle);
-            Form1.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(g_center.X, g_center.Y),
                 new Mathe.RawVector2(g_mili.X, g_mili.Y), blueBrush3, 1, strokeStyle);
+
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(Cursor.Position.X - RenderForm.Left, Cursor.Position.Y - RenderForm.Top),
+                new Mathe.RawVector2(g_mili.X, g_mili.Y), blueBrush3, 1, strokeStyle2);
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(Cursor.Position.X - RenderForm.Left, Cursor.Position.Y - RenderForm.Top),
+                new Mathe.RawVector2(g_sec.X, g_sec.Y), blueBrush3, 1, strokeStyle2);
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(Cursor.Position.X - RenderForm.Left, Cursor.Position.Y - RenderForm.Top),
+                new Mathe.RawVector2(g_min.X, g_min.Y), blueBrush3, 1, strokeStyle2);
+            RenderForm.RenderTarget.DrawLine(new Mathe.RawVector2(Cursor.Position.X - RenderForm.Left, Cursor.Position.Y - RenderForm.Top),
+                new Mathe.RawVector2(g_hour.X, g_hour.Y), blueBrush3, 1, strokeStyle2);
 
 
             // Draw text
-            Form1.RenderTarget.DrawText("Direct2D Test", textFormat, new Mathe.RawRectangleF(0, 0, 400, 200), whiteBrush);
+            RenderForm.RenderTarget.DrawText("Direct2D Test", textFormat, new Mathe.RawRectangleF(0, 0, 400, 200), whiteBrush);
+            RenderForm.RenderTarget.DrawText(sw.ElapsedMilliseconds.ToString(), textFormat, new Mathe.RawRectangleF(0, 50, 400, 200), whiteBrush);
 
-            Form1.RenderTarget.DrawText(DateTime.Now.ToLongTimeString() + "." + DateTime.Now.Millisecond.ToString("000"),
+            RenderForm.RenderTarget.DrawText(DateTime.Now.ToLongTimeString() + "." + DateTime.Now.Millisecond.ToString("000"),
                 textFormat, new Mathe.RawRectangleF(0, 100, 400, 200), redBrush);
 
 
 
             // End drawing
-            Form1.RenderTarget.EndDraw();
+            RenderForm.RenderTarget.EndDraw();
         }
     }
 }
