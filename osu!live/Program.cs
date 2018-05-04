@@ -52,6 +52,11 @@ DrawFromRightToLeft = False
             System.IO.File.WriteAllText("stream\\settings.ini", ini);
             Constant.Canvas.Zoom = 0.7;
 
+            if (!Environment.Is64BitProcess)
+                System.Diagnostics.Debug.WriteLine(Environment.SystemDirectory);
+            else
+                System.Diagnostics.Debug.WriteLine(Environment.SystemDirectory);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());

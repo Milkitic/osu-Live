@@ -12,41 +12,32 @@ using System.Threading;
 
 namespace osu_live.Layer
 {
-    public class L_background
+    public class L_background : Layer
     {
-        public Bitmap Bitmap { get; set; }
-        public Graphics Graphics { get; set; }
-        public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
-
-        public long InitializeTime { get; set; }
-        public long DrawTime { get; set; }
-        Stopwatch sw = new Stopwatch();
-
+        // Effect Control
+        Image newBackground, oldBackground;
+        Color color;
         float x = 0, y = 0;
         float width = 0, height = 0;
         float preX = 0, preY = 0;
         float preWidth = 0, preHeight = 0;
 
-        Image newBackground, oldBackground;
-        Color color;
-        Random rnd = new Random();
         float Ratio { get => newBackground.Width / (float)newBackground.Height; }
 
-        int canvas_height = Constant.Canvas.Height;
-        int canvas_width = Constant.Canvas.Width;
-
         int fade, fadeSpeed;
+
+        // Status Control
         bool isFadeIn, flag;
 
         public L_background()
         {
-            Bitmap = new Bitmap(canvas_width, canvas_height);
+            Bitmap = new Bitmap(CanvasWidth, CanvasHeight);
         }
         public void Initialize(FileInfo MapInfo)
         {
-            sw.Restart();
+            watch.Restart();
 
-            Graphics = Graphics.FromImage(Bitmap);
+            Graphic = Graphics.FromImage(Bitmap);
             preX = x;
             preY = y;
             preWidth = width;
@@ -65,29 +56,25 @@ namespace osu_live.Layer
             flag = false;
             fadeSpeed = 80;
 
-            InitializeTime = sw.ElapsedMilliseconds;
-            sw.Stop();
-            //InitializeTime = 0;
+            InitializeTime = watch.ElapsedMilliseconds;
+            watch.Stop();
         }
 
         public void Draw()
         {
-            sw.Restart();
+            watch.Restart();
 
             color = Color.FromArgb(rnd.Next(0, 50), rnd.Next(0, 50), rnd.Next(0, 50));
             if (!isFadeIn)
             {
                 if (!flag)
                 {
-                    Graphics.Clear(Color.Transparent);
+                    Graphic.Clear(Color.Transparent);
                     flag = true;
-                    lock (oldBackground)
-                    {
-                        Graphics.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
-                    }
+                    Graphic.DrawImage(oldBackground, preX, preY, preWidth, preHeight);
                 }
 
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, canvas_width, canvas_height));
+                Graphic.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, CanvasWidth, CanvasHeight));
 
                 fade += fadeSpeed;
                 if (fade >= 255)
@@ -100,12 +87,12 @@ namespace osu_live.Layer
             {
                 if (flag)
                 {
-                    Graphics.Clear(Color.Transparent);
+                    Graphic.Clear(Color.Transparent);
                     GetBGSize();
                     flag = false;
                 }
-                Graphics.DrawImage(newBackground, x, y, width, height);
-                Graphics.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, canvas_width, canvas_height));
+                Graphic.DrawImage(newBackground, x, y, width, height);
+                Graphic.FillRectangle(new SolidBrush(Color.FromArgb(fade, color.R, color.G, color.B)), new Rectangle(0, 0, CanvasWidth, CanvasHeight));
 
                 if (fade > 0)
                 {
@@ -116,17 +103,17 @@ namespace osu_live.Layer
                 else
                 {
                     ChangeStatus = ChangeStatus.ChangeFinshed;
-                    Graphics.Dispose();
+                    Graphic.Dispose();
 
                     Thread t1 = new Thread(Blur);
                     t1.Start();
-                    sw.Stop();
+                    watch.Stop();
                     DrawTime = 0;
                     return;
                 }
             }
-            DrawTime = sw.ElapsedMilliseconds;
-            sw.Stop();
+            DrawTime = watch.ElapsedMilliseconds;
+            watch.Stop();
         }
 
         private void Blur()
@@ -152,19 +139,19 @@ namespace osu_live.Layer
             // deal with different size of image
             if (Ratio >= Constant.Canvas.Ratio) // more width
             {
-                float scale = (float)canvas_height / newBackground.Height;
-                height = canvas_height;
+                float scale = (float)CanvasHeight / newBackground.Height;
+                height = CanvasHeight;
                 width = newBackground.Width * scale;
-                x = -(width - canvas_width) / 2;
+                x = -(width - CanvasWidth) / 2;
                 y = Constant.Canvas.Y;
             }
             else if (Ratio < Constant.Canvas.Ratio) // more height
             {
-                float scale = (float)canvas_width / newBackground.Width;
-                width = canvas_width;
+                float scale = (float)CanvasWidth / newBackground.Width;
+                width = CanvasWidth;
                 height = newBackground.Height * scale;
                 x = Constant.Canvas.X;
-                y = -(height - canvas_height) / 2;
+                y = -(height - CanvasHeight) / 2;
             }
         }
     }

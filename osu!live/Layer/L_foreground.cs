@@ -10,55 +10,42 @@ using System.Diagnostics;
 
 namespace osu_live.Layer
 {
-    public class L_foreground
+    public class L_foreground : Layer
     {
-        public Bitmap Bitmap { get; set; }
-        public Graphics Graphics { get; set; }
-        public Rectangle Rec_Panel { get; set; }
-        public ChangeStatus ChangeStatus { get; set; } = ChangeStatus.ReadyToChange;
-        public long InitializeTime { get; set; }
-        public long DrawTime { get; set; }
-        Stopwatch sw = new Stopwatch();
-
-        int canvas_height = Constant.Canvas.Height, canvas_width = Constant.Canvas.Width;
-        float zoom = (float)Constant.Canvas.Zoom;
-
         string newTitle, oldTitle;
         string newArtist, oldArtist;
 
         bool isRunned = false;
-        bool isFadeIn = false;
         int fade_speed = 25;
         char[] artist_list;
         char[] title_list;
 
-        float artist_x = 25, artist_y = 30;
-        float title_x = 20, title_y = 60;
-        float shadow_offset = 2;
-        float[] artist_x_list_std, title_x_list_std;
-        float[] artist_x_list_moving, title_x_list_moving;
-        float[] artist_x_list_moving_a = { 15 }, title_x_list_moving_a = { 20 };
-        int[] artist_x_list_alpha = { 0 }, title_x_list_alpha = { 0 };
+        float artistX = 25, artistY = 30;
+        float titleX = 20, titleY = 60;
+        float shadowOffset = 2;
+        float[] artistListX, titleListX;
+        float[] artistMovListX, titleMovListX;
+        float[] artistMovListX_A = { 15 }, titleMovListX_A = { 20 };
+        int[] artistAlphaListX = { 0 }, titleAlphaListX = { 0 };
 
-        float action_info_counter = -1;
+        float actionCount = -1;
 
         public void Initialize(FileInfo MapInfo)
         {
-            sw.Restart();
+            watch.Restart();
 
-            artist_x = 25 * zoom;
-            artist_y = 30 * zoom;
-            title_x = 20 * zoom;
-            title_y = 60 * zoom;
-            shadow_offset = 2 * zoom;
+            #region INIT
+            artistX = 25 * zoom;
+            artistY = 30 * zoom;
+            titleX = 20 * zoom;
+            titleY = 60 * zoom;
+            shadowOffset = 2 * zoom;
 
-            //
+            int font_panel_y = (int)(CanvasHeight * (600d / 720));
+            RecPanel = new Rectangle(-1, font_panel_y, CanvasWidth + 1, CanvasHeight - font_panel_y);
+            Bitmap = new Bitmap(RecPanel.Width, RecPanel.Height);
 
-            int font_panel_y = (int)(canvas_height * (600d / 720));
-            Rec_Panel = new Rectangle(-1, font_panel_y, canvas_width + 1, canvas_height - font_panel_y);
-            if (Bitmap == null) Bitmap = new Bitmap(Rec_Panel.Width, Rec_Panel.Height);
-
-            Graphics = Graphics.FromImage(Bitmap);
+            Graphic = Graphics.FromImage(Bitmap);
             ChangeStatus = ChangeStatus.ReadyToChange;
 
             oldTitle = newTitle;
@@ -71,33 +58,33 @@ namespace osu_live.Layer
 
             artist_list = newArtist.ToCharArray();
             title_list = newTitle.ToCharArray();
-            artist_x_list_std = new float[newArtist.Length];
-            title_x_list_std = new float[newTitle.Length];
+            artistListX = new float[newArtist.Length];
+            titleListX = new float[newTitle.Length];
 
-            artist_x_list_moving = new float[newArtist.Length];
-            title_x_list_moving = new float[newTitle.Length];
+            artistMovListX = new float[newArtist.Length];
+            titleMovListX = new float[newTitle.Length];
 
-            artist_x_list_moving_a = new float[newArtist.Length]; //加速度
-            title_x_list_moving_a = new float[newTitle.Length];
+            artistMovListX_A = new float[newArtist.Length]; //加速度
+            titleMovListX_A = new float[newTitle.Length];
 
-            artist_x_list_alpha = new int[newArtist.Length]; //透明度
-            title_x_list_alpha = new int[newTitle.Length];
+            artistAlphaListX = new int[newArtist.Length]; //透明度
+            titleAlphaListX = new int[newTitle.Length];
 
-            action_info_counter = -1;
+            actionCount = -1;
             isRunned = false;
 
-            for (int i = 0; i < artist_x_list_moving_a.Length; i++)
-                artist_x_list_moving_a[i] = 11 * zoom;
-            for (int i = 0; i < title_x_list_moving_a.Length; i++)
-                title_x_list_moving_a[i] = 13 * zoom;
+            for (int i = 0; i < artistMovListX_A.Length; i++)
+                artistMovListX_A[i] = 11 * zoom;
+            for (int i = 0; i < titleMovListX_A.Length; i++)
+                titleMovListX_A[i] = 13 * zoom;
+            #endregion
 
-            InitializeTime = sw.ElapsedMilliseconds;
-            sw.Stop();
-            //InitializeTime = 0;
+            watch.Stop();
+            InitializeTime = watch.ElapsedMilliseconds;
         }
         public void Draw()
         {
-            sw.Restart();
+            watch.Restart();
 
             Clear();
             Font font_artist, font_title;
@@ -116,9 +103,9 @@ namespace osu_live.Layer
             font_title = new Font("等线 Light", 28 * zoom, FontStyle.Regular);
             if (!isRunned)
             {
-                Graphics.SmoothingMode = SmoothingMode.HighQuality;
-                Graphics.CompositingQuality = CompositingQuality.HighQuality;
-                Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                Graphic.SmoothingMode = SmoothingMode.HighQuality;
+                Graphic.CompositingQuality = CompositingQuality.HighQuality;
+                Graphic.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
                 // calculate each character's position
                 // new artist_list
@@ -127,12 +114,12 @@ namespace osu_live.Layer
                 {
                     string chara = artist_list[i].ToString();
 
-                    SizeF sizeF = Graphics.MeasureString(chara, font_artist);
+                    SizeF sizeF = Graphic.MeasureString(chara, font_artist);
                     if (i == 0)
-                        artist_x_list_std[i] = artist_x;
+                        artistListX[i] = artistX;
                     else
-                        artist_x_list_std[i] = artist_x_list_std[i - 1] + old_width;
-                    artist_x_list_moving[i] = artist_x_list_std[i] + 70 * zoom;
+                        artistListX[i] = artistListX[i - 1] + old_width;
+                    artistMovListX[i] = artistListX[i] + 70 * zoom;
                     if (artist_list[i] == ' ')
                         old_width = 6 * zoom;
                     else
@@ -144,13 +131,13 @@ namespace osu_live.Layer
                 for (int i = 0; i < title_list.Length; i++)
                 {
                     string chara = title_list[i].ToString();
-                    SizeF sizeF = Graphics.MeasureString(chara, font_title);
+                    SizeF sizeF = Graphic.MeasureString(chara, font_title);
                     if (i == 0)
-                        title_x_list_std[i] = title_x;
+                        titleListX[i] = titleX;
                     else
-                        title_x_list_std[i] = title_x_list_std[i - 1] + old_width;
+                        titleListX[i] = titleListX[i - 1] + old_width;
 
-                    title_x_list_moving[i] = title_x_list_std[i] + 90 * zoom;
+                    titleMovListX[i] = titleListX[i] + 90 * zoom;
 
                     if (title_list[i] == ' ')
                         old_width = 10 * zoom;
@@ -163,83 +150,83 @@ namespace osu_live.Layer
             //draw artist
             for (int i = 0; i < artist_list.Length; i++)
             {
-                if (i > action_info_counter)
+                if (i > actionCount)
                     continue;
                 string chara = artist_list[i].ToString();
 
-                brush = new SolidBrush(Color.FromArgb(artist_x_list_alpha[i], 255, 255, 255));
-                Graphics.DrawString(chara, font_artist, brush, artist_x_list_moving[i], artist_y);
-                if (artist_x_list_alpha[i] < 255) //control the alpha degree
+                brush = new SolidBrush(Color.FromArgb(artistAlphaListX[i], 255, 255, 255));
+                Graphic.DrawString(chara, font_artist, brush, artistMovListX[i], artistY);
+                if (artistAlphaListX[i] < 255) //control the alpha degree
                 {
-                    artist_x_list_alpha[i] += fade_speed;
-                    if (artist_x_list_alpha[i] > 255) artist_x_list_alpha[i] = 255;
+                    artistAlphaListX[i] += fade_speed;
+                    if (artistAlphaListX[i] > 255) artistAlphaListX[i] = 255;
                 }
-                if (artist_x_list_moving[i] > artist_x_list_std[i]) //keep moving until reach target
-                    artist_x_list_moving[i] -= artist_x_list_moving_a[i];
-                else artist_x_list_moving[i] = artist_x_list_std[i];
+                if (artistMovListX[i] > artistListX[i]) //keep moving until reach target
+                    artistMovListX[i] -= artistMovListX_A[i];
+                else artistMovListX[i] = artistListX[i];
 
-                if (artist_x_list_moving_a[i] > 1) artist_x_list_moving_a[i] -= zoom; //control the acceleration
+                if (artistMovListX_A[i] > 1) artistMovListX_A[i] -= zoom; //control the acceleration
             }
 
             //draw title
             for (int i = 0; i < title_list.Length; i++)
             {
-                if (i > action_info_counter)
+                if (i > actionCount)
                     continue;
                 string chara = title_list[i].ToString();
 
-                brush = new SolidBrush(Color.FromArgb(title_x_list_alpha[i], 255, 255, 255));
-                Graphics.DrawString(chara, font_title, brush, title_x_list_moving[i], title_y);
-                if (title_x_list_alpha[i] < 255)
+                brush = new SolidBrush(Color.FromArgb(titleAlphaListX[i], 255, 255, 255));
+                Graphic.DrawString(chara, font_title, brush, titleMovListX[i], titleY);
+                if (titleAlphaListX[i] < 255)
                 {
-                    title_x_list_alpha[i] += fade_speed;
-                    if (title_x_list_alpha[i] > 255) title_x_list_alpha[i] = 255;
+                    titleAlphaListX[i] += fade_speed;
+                    if (titleAlphaListX[i] > 255) titleAlphaListX[i] = 255;
                 }
-                if (title_x_list_moving[i] > title_x_list_std[i])
-                    title_x_list_moving[i] -= title_x_list_moving_a[i];
-                else title_x_list_moving[i] = title_x_list_std[i];
+                if (titleMovListX[i] > titleListX[i])
+                    titleMovListX[i] -= titleMovListX_A[i];
+                else titleMovListX[i] = titleListX[i];
 
-                if (title_x_list_moving_a[i] > 1) title_x_list_moving_a[i] -= zoom;
+                if (titleMovListX_A[i] > 1) titleMovListX_A[i] -= zoom;
             }
-            action_info_counter++;
+            actionCount++;
 
             //if finished then redraw
-            if ((artist_x_list_std.Length == 0 || artist_x_list_moving[artist_x_list_std.Length - 1] <= artist_x_list_std[artist_x_list_std.Length - 1])
-                && (title_x_list_std.Length == 0 || title_x_list_moving[title_x_list_std.Length - 1] <= title_x_list_std[title_x_list_std.Length - 1]))
+            if ((artistListX.Length == 0 || artistMovListX[artistListX.Length - 1] <= artistListX[artistListX.Length - 1])
+                && (titleListX.Length == 0 || titleMovListX[titleListX.Length - 1] <= titleListX[titleListX.Length - 1]))
             {
                 Clear();
                 for (int i = 0; i < artist_list.Length; i++)
                 {
                     brush = new SolidBrush(Color.FromArgb(60, 0, 0, 0));
                     string chara = artist_list[i].ToString();
-                    Graphics.DrawString(chara, font_artist, brush, artist_x_list_std[i] + shadow_offset, artist_y + shadow_offset);
+                    Graphic.DrawString(chara, font_artist, brush, artistListX[i] + shadowOffset, artistY + shadowOffset);
                     brush = new SolidBrush(Color.White);
-                    Graphics.DrawString(chara, font_artist, brush, artist_x_list_std[i], artist_y);
+                    Graphic.DrawString(chara, font_artist, brush, artistListX[i], artistY);
                 }
                 for (int i = 0; i < title_list.Length; i++)
                 {
                     string chara = title_list[i].ToString();
                     brush = new SolidBrush(Color.FromArgb(70, 0, 0, 0));
-                    Graphics.DrawString(chara, font_title, brush, title_x_list_std[i] + shadow_offset, title_y + shadow_offset);
+                    Graphic.DrawString(chara, font_title, brush, titleListX[i] + shadowOffset, titleY + shadowOffset);
                     brush = new SolidBrush(Color.White);
-                    Graphics.DrawString(chara, font_title, brush, title_x_list_std[i], title_y);
+                    Graphic.DrawString(chara, font_title, brush, titleListX[i], titleY);
                 }
                 ChangeStatus = ChangeStatus.ChangeFinshed;
-                Graphics.Dispose();
-                sw.Stop();
+                Graphic.Dispose();
+                watch.Stop();
                 DrawTime = 0;
                 return;
             }
 
-            DrawTime = sw.ElapsedMilliseconds;
-            sw.Stop();
+            DrawTime = watch.ElapsedMilliseconds;
+            watch.Stop();
         }
 
         private void Clear()
         {
-            Graphics.Clear(Color.FromArgb(0, 0, 0, 0));
-            LinearGradientBrush linGrBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Rec_Panel.Height), Color.FromArgb(0, 0, 0, 0), Color.FromArgb(200, 0, 0, 0));
-            Graphics.FillRectangle(linGrBrush, 0, 0, Rec_Panel.Width, Rec_Panel.Height);
+            Graphic.Clear(Color.FromArgb(0, 0, 0, 0));
+            LinearGradientBrush linGrBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, RecPanel.Height), Color.FromArgb(0, 0, 0, 0), Color.FromArgb(200, 0, 0, 0));
+            Graphic.FillRectangle(linGrBrush, 0, 0, RecPanel.Width, RecPanel.Height);
         }
     }
 }

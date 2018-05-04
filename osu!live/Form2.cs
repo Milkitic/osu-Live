@@ -55,17 +55,17 @@ namespace osu_live
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            Form1.l_PA.Border = checkBox1.Checked;
+            //Form1.layerParticle.Border = checkBox1.Checked;
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
-            Form1.l_PA.Rotate = checkBox2.Checked;
+            //Form1.layerParticle.Rotate = checkBox2.Checked;
         }
 
         private void checkBox3_CheckedChanged(object sender, EventArgs e)
         {
-            Form1.ShowFPS = checkBox3.Checked;
+            Form1.ShowFps = checkBox3.Checked;
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
@@ -75,20 +75,18 @@ namespace osu_live
 
         private void trackBar1_MouseUp(object sender, MouseEventArgs e)
         {
-            //Form1..Enabled = false;
-            Form1.l_PA.Initialize(trackBar1.Value);
-            //timer1.Enabled = true;
+            //Form1.layerParticle.Initialize(trackBar1.Value);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (Form1.idleStatus == IdleStatus.Stopped) return;
+            if (Form1.IdleStatus == IdleStatus.Stopped) return;
             display_g = canvas.CreateGraphics();
             display_g.Clear(Color.White);
-            display_g.DrawImage(Form1.l_BG.Bitmap, 0, 0, canvas.Width, canvas.Height);
+            display_g.DrawImage(Form1.layerBack.Bitmap, 0, 0, canvas.Width, canvas.Height);
             display_g.Dispose();
 
-            var a = Form1.l_FG.Rec_Panel;
+            var a = Form1.layerFore.RecPanel;
             float ratio = 0;
             ratio = (float)a.Width / canvas2.Width;
             a.Width = canvas2.Width;
@@ -96,7 +94,7 @@ namespace osu_live
             a.Y = (int)(a.Y / ratio);
             display_g_2 = canvas2.CreateGraphics();
             display_g_2.Clear(Color.White);
-            display_g_2.DrawImage(Form1.l_FG.Bitmap, a);
+            display_g_2.DrawImage(Form1.layerFore.Bitmap, a);
             display_g_2.Dispose();
 
         }

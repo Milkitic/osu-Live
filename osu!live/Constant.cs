@@ -8,7 +8,7 @@ namespace osu_live
 {
     public static class Constant
     {
-        public static _canvas Canvas { get; set; } = new _canvas
+        public static _Canvas Canvas { get; set; } = new _Canvas
         {
             Height = 1280,
             Width = 720,
@@ -16,7 +16,7 @@ namespace osu_live
             Y = 0
         };
 
-        public class _canvas
+        public class _Canvas
         {
             public int Width { get; set; }
             public int Height { get; set; }

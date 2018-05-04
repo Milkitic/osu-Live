@@ -16,69 +16,75 @@ namespace osu_live
 {
     public partial class Form1 : Form
     {
-        // const
-        int canvas_width = Constant.Canvas.Width,
-            canvas_height = Constant.Canvas.Height;
-        float zoom = (float)Constant.Canvas.Zoom;
-        public static bool ShowFPS { get; set; } = false;
+        // CAMERA & CANVAS
+        int CanvasWidth { get; set; } = Constant.Canvas.Width;
+        int CanvasHeight { get; set; } = Constant.Canvas.Height;
+        float CanvasZoom { get; set; } = (float)Constant.Canvas.Zoom;
 
-        // status
-        public static IdleStatus idleStatus = IdleStatus.Stopped;
+        float CameraDeg { get; set; } = 0;
+        float CameraSca { get; set; } = 0;
+        float CameraDegR { get; set; }
+        float CameraScaR { get; set; }
 
-        // var
-        string root = null;
+        // FPS
+        Stopwatch FpsWatch { get; set; } = new Stopwatch();
+        double Fps { get; set; } = 0;
+        public static bool ShowFps { get; set; } = false;
+        long RefreshDelay { get; set; }
+        int fpsCount;
 
-        Bitmap display;
-        Graphics display_g;
-        FileInfo map_changed_info;
-        FileInfo diff_playing_info;
+        // STATUS
+        public static IdleStatus IdleStatus { get; set; } = IdleStatus.Stopped;
 
-        public static L_background l_BG = new L_background();
-        public static L_foreground l_FG = new L_foreground();
-        public static L_particle l_PA = new L_particle();
+        // IO
+        string Root { get; set; } = null;
+        string RootOld { get; set; }
+        FileInfo MapInfo { get; set; }
+        FileInfo PlayInfo { get; set; }
+        string PlayDiff;
 
-        long refreshDelay;
+        // GDI+
+        Bitmap bitmap;
+        Graphics graphic;
+        public static L_background layerBack = new L_background();
+        public static L_foreground layerFore = new L_foreground();
+        //public static L_particle layerParticle = new L_particle();
+        public static L_DashAim layerDashAim = new L_DashAim();
 
-        string root_old, diff;
         public Form1()
         {
             InitializeComponent();
+            // Set default size
             Size = new Size((int)(1280 * Constant.Canvas.Zoom) + 16,
              (int)(720 * Constant.Canvas.Zoom) + 39);
 
-            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             //开启双缓冲
             SetStyle(ControlStyles.DoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
         }
 
         private void DrawFPS()
         {
-            Color a;
-            if (fps >= 60)
-                a = Color.FromArgb(172, 220, 25);
-            else if (fps >= 45)
-                a = Color.FromArgb(255, 204, 34);
+            Color color;
+            if (Fps >= 60)
+                color = Color.FromArgb(172, 220, 25);
+            else if (Fps >= 45)
+                color = Color.FromArgb(255, 204, 34);
             else
-                a = Color.FromArgb(255, 149, 24);
+                color = Color.FromArgb(255, 149, 24);
 
-            display_g.FillRectangle(new SolidBrush(a), new RectangleF(1196 * zoom, 698 * zoom, canvas_width, canvas_height));
-            display_g.DrawString(string.Format("{0:0.0}", fps > 60 ? 60 : fps) + " FPS", new Font("Consolas", 12 * zoom), new SolidBrush(Color.Black), canvas_width - 80 * zoom, canvas_height - 20 * zoom);
-        }
-
-        private void Form1_SizeChanged(object sender, EventArgs e)
-        {
-
-
+            graphic.FillRectangle(new SolidBrush(color), new RectangleF(1196 * CanvasZoom, 698 * CanvasZoom, CanvasWidth, CanvasHeight));
+            graphic.DrawString(string.Format("{0:0.0}", Fps > 60 ? 60 : Fps) + " FPS", new Font("Consolas", 12 * CanvasZoom), new SolidBrush(Color.Black), CanvasWidth - 80 * CanvasZoom, CanvasHeight - 20 * CanvasZoom);
         }
 
         private void timer_status_change_Tick(object sender, EventArgs e)
         {
-            if (idleStatus == IdleStatus.Listening && l_BG.ChangeStatus == ChangeStatus.ReadyToChange)
+            if (IdleStatus == IdleStatus.Listening && layerBack.ChangeStatus == ChangeStatus.ReadyToChange)
             {
-                l_BG.ChangeStatus = ChangeStatus.Changing;
-                l_FG.ChangeStatus = ChangeStatus.Changing;
+                layerBack.ChangeStatus = ChangeStatus.Changing;
+                layerFore.ChangeStatus = ChangeStatus.Changing;
                 action_change_bg.Enabled = true;
                 action_change_info.Enabled = true;
             }
@@ -86,76 +92,80 @@ namespace osu_live
 
         private void action_change_info_Tick(object sender, EventArgs e)
         {
-            if (l_FG.ChangeStatus != ChangeStatus.Changing)
+            if (layerFore.ChangeStatus != ChangeStatus.Changing)
             {
                 action_change_info.Enabled = false;
                 return;
             }
-            l_FG.Draw();
+            layerFore.Draw();
         }
         private void action_particle_Tick(object sender, EventArgs e)
         {
-            l_PA.Draw();
+            //layerParticle.Draw();
+            layerDashAim.Draw();
         }
 
         private void action_change_bg_Tick(object sender, EventArgs e)
         {
-            if (l_BG.ChangeStatus != ChangeStatus.Changing)
+            if (layerBack.ChangeStatus != ChangeStatus.Changing)
             {
                 action_change_bg.Enabled = false;
                 return;
             }
-            l_BG.Draw();
+            layerBack.Draw();
         }
-        Stopwatch ts_fps = new Stopwatch();
-        double fps = 0;
-        int fps_count;
-        float angle = 0, angle_r;
-        float scale = 0, scale_r;
+
         Random rnd = new Random();
         private void action_display_Tick(object sender, EventArgs e)
         {
-            if (fps_count == 0)
+            if (fpsCount == 0)
             {
-                refreshDelay = ts_fps.ElapsedMilliseconds;
-                fps = 1000f / (refreshDelay);
-                fps_count++;
+                RefreshDelay = FpsWatch.ElapsedMilliseconds;
+                Fps = 1000f / (RefreshDelay);
+                fpsCount++;
             }
-            else if (fps_count == 1)
-                fps_count = 0;
+            else if (fpsCount == 1)
+                fpsCount = 0;
             else
-                fps_count++;
+                fpsCount++;
 
-            ts_fps.Restart();
+            FpsWatch.Restart();
 
-            if (display != null) display.Dispose();
-            display = new Bitmap(canvas_width, canvas_height);
-            display_g = Graphics.FromImage(display);
+            if (bitmap != null) bitmap.Dispose();
+            bitmap = new Bitmap(CanvasWidth, CanvasHeight);
+            graphic = Graphics.FromImage(bitmap);
+            //display_g = Graphics.FromHwnd(canvas.Handle);
+            graphic.SmoothingMode = SmoothingMode.HighQuality;
+            graphic.CompositingQuality = CompositingQuality.Invalid;
+            graphic.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-            display_g.SmoothingMode = SmoothingMode.HighQuality;
-            display_g.CompositingQuality = CompositingQuality.Invalid;
-            display_g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            #region 一个五毛特效
+            //CameraScaR = (float)(Math.Cos(CameraSca * Math.PI / 180) * 0.01 + 1.013);
+            //CameraDegR = (float)(Math.Cos(CameraDeg * Math.PI / 180) * 0.2);
+            //graphic.ScaleTransform(CameraScaR, CameraScaR);
+            //graphic.TranslateTransform((CanvasWidth - CanvasWidth * CameraScaR) / 2, (CanvasHeight - CanvasHeight * CameraScaR) / 2);
 
-            scale_r = (float)(Math.Cos(scale * Math.PI / 180) * 0.01 + 1.013);
-            angle_r = (float)(Math.Cos(angle * Math.PI / 180) * 0.2);
-            display_g.ScaleTransform(scale_r, scale_r);
-            display_g.TranslateTransform((canvas_width - canvas_width * scale_r) / 2, (canvas_height - canvas_height * scale_r) / 2);
+            //graphic.TranslateTransform(CanvasWidth / 2, CanvasHeight / 2);
+            //graphic.RotateTransform(CameraDegR);
+            //graphic.TranslateTransform(-CanvasWidth / 2, -CanvasHeight / 2);
+            #endregion
 
-            display_g.TranslateTransform(canvas_width / 2, canvas_height / 2);
-            display_g.RotateTransform(angle_r);
-            display_g.TranslateTransform(-canvas_width / 2, -canvas_height / 2);
+            graphic.Clear(Color.Transparent);
+            graphic.DrawImage(layerBack.Bitmap, 0, 0);
 
-            display_g.Clear(Color.Transparent);
-            display_g.DrawImage(l_BG.Bitmap, 0, 0);
-            display_g.DrawImage(l_PA.Bitmap, 0, 0);
-            display_g.DrawImage(l_FG.Bitmap, l_FG.Rec_Panel);
-            if (ShowFPS) DrawFPS();
+            //graphic.DrawImage(layerParticle.Bitmap, 0, 0);
+            graphic.DrawImage(layerFore.Bitmap, layerFore.RecPanel);
+            //graphic.DrawImage(layerDashAim.Bitmap, layerDashAim.RecPanel.X, layerDashAim.RecPanel.Y);
+            graphic.DrawImage(layerDashAim.Bitmap, layerDashAim.RecPanel);
+            graphic.CompositingQuality = CompositingQuality.GammaCorrected;
 
-            display_g.Dispose();
-            canvas.Image = display;
+            if (ShowFps) DrawFPS();
+
+            graphic.Dispose();
+            canvas.Image = bitmap;
             Form1_Resize(sender, e);
-            angle += (float)(1 + rnd.NextDouble() * 2);
-            scale += (float)(0.5 + rnd.NextDouble() * 0.5);
+            CameraDeg += (float)(1 + rnd.NextDouble() * 2);
+            CameraSca += (float)(0.5 + rnd.NextDouble() * 0.5);
         }
 
         private void canvas_DoubleClick(object sender, EventArgs e)
@@ -168,13 +178,18 @@ namespace osu_live
         {
             ProcessStart();
             SceneListen.LoadBG();
+            //avoid artifacts
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
+
             //map_changed_info = new FileInfo(@"Files\l_OsuFileLocation");
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            if (proc == null) return;
             proc.Exited -= new EventHandler(Process_Exited);
             proc.Kill();
+            layerDashAim.Close();
         }
         Process proc;
         void ProcessStart()
@@ -190,7 +205,9 @@ namespace osu_live
                 proc.EnableRaisingEvents = true;
                 proc.Exited += new EventHandler(Process_Exited);
             }
-            catch { }
+            catch
+            {
+            }
         }
         void Process_Exited(object sender, EventArgs e)
         {
@@ -198,76 +215,77 @@ namespace osu_live
         }
         private void Form1_Resize(object sender, EventArgs e)
         {
-            Text = string.Format("({0}, {1}) Background: {2}ms{5} Foreground: {3}ms{6}, Particle: {4}ms{7}. Refresh: {8}ms",
-                   canvas_width, canvas_height, l_BG.DrawTime, l_FG.DrawTime, l_PA.DrawTime,
-                   l_BG.InitializeTime != 0 ? " (INIT " + l_BG.InitializeTime + "ms)" : "",
-                   l_FG.InitializeTime != 0 ? " (INIT " + l_FG.InitializeTime + "ms)" : "",
-                   l_PA.InitializeTime != 0 ? " (INIT " + l_PA.InitializeTime + "ms)" : "",
-                   refreshDelay);
+            //Text = string.Format("({0}, {1}) Background: {2}ms{5} Foreground: {3}ms{6}, Particle: {4}ms{7}. Refresh: {8}ms",
+            //       CanvasWidth, CanvasHeight, layerBack.DrawTime, layerFore.DrawTime, layerParticle.DrawTime,
+            //       layerBack.InitializeTime != 0 ? " (INIT " + layerBack.InitializeTime + "ms)" : "",
+            //       layerFore.InitializeTime != 0 ? " (INIT " + layerFore.InitializeTime + "ms)" : "",
+            //       layerParticle.InitializeTime != 0 ? " (INIT " + layerParticle.InitializeTime + "ms)" : "",
+            //       RefreshDelay);
         }
 
         private void timer_status_check_Tick(object sender, EventArgs e)
         {
             FileInfo tmp = new FileInfo(@"stream\Files\l_OsuFileLocation");
-            if (map_changed_info != null && tmp.LastWriteTime == map_changed_info.LastWriteTime)
+            if (MapInfo != null && tmp.LastWriteTime == MapInfo.LastWriteTime)
                 return;
-            map_changed_info = tmp;
-            root_old = root;
+            MapInfo = tmp;
+            RootOld = Root;
             try
             {
-                root = File.ReadAllText(map_changed_info.FullName);
+                Root = File.ReadAllText(MapInfo.FullName);
             }
             catch
             {
                 return;
             }
-            if (root.Trim() == "")
+            if (Root.Trim() == "")
             {
-                FileInfo tmp2 = new FileInfo(@"stream\Files\l_DiffName");
-                if (diff_playing_info != null && tmp2.LastWriteTime == diff_playing_info.LastWriteTime)
+                FileInfo playDiff = new FileInfo(@"stream\Files\l_DiffName");
+                if (PlayInfo != null && playDiff.LastWriteTime == PlayInfo.LastWriteTime)
                     return;
-                diff_playing_info = tmp2;
+                PlayInfo = playDiff;
                 try
                 {
-                    diff = File.ReadAllText(diff_playing_info.FullName);
+                    PlayDiff = File.ReadAllText(PlayInfo.FullName);
                 }
                 catch
                 {
                     return;
                 }
-                if (diff.Trim() != "")
+                if (PlayDiff.Trim() != "")
                 {
-                    idleStatus = IdleStatus.Playing;
+                    IdleStatus = IdleStatus.Playing;
                     //todo
                     return;
                 }
             }
             else
             {
-                idleStatus = IdleStatus.Listening;
+                IdleStatus = IdleStatus.Listening;
 
-                if (root == root_old) return;
+                if (Root == RootOld) return;
 
                 /// Initialize
                 if (!timer_status_change.Enabled)
                 {
                     //first run
-                    l_PA.Initialize(120);
+                    //layerParticle.Initialize(10);
+                    layerDashAim.Initialize();
                 }
                 else
                 {
-                    l_BG.Graphics.Dispose();
-                    l_FG.Graphics.Dispose();
+                    layerBack.Graphic.Dispose();
+                    layerFore.Graphic.Dispose();
                     string sentence = "214,3215,663";
                     string[] word = sentence.Split(',');
                 }
-                l_BG.Initialize(map_changed_info);
-                l_FG.Initialize(map_changed_info);
+                layerBack.Initialize(MapInfo);
+                layerFore.Initialize(MapInfo);
 
                 if (action_change_info.Enabled) action_change_info.Enabled = false;
                 //
             }
-            if (idleStatus != IdleStatus.Stopped)
+            if (IdleStatus != IdleStatus.Stopped)
             {
                 if (!timer_status_change.Enabled) timer_status_change.Enabled = true;
                 if (!action_particle.Enabled) action_particle.Enabled = true;

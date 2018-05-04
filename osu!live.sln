@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu!live", "osu!live\osu!live.csproj", "{F333E0CA-B8FE-4934-8E9C-0FD5B444B17C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu!live_sharpdx", "osu!live_sharpdx\osu!live_sharpdx.csproj", "{1E7CB80D-5A34-46D5-BEDE-CE20E935372A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{F333E0CA-B8FE-4934-8E9C-0FD5B444B17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F333E0CA-B8FE-4934-8E9C-0FD5B444B17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F333E0CA-B8FE-4934-8E9C-0FD5B444B17C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E7CB80D-5A34-46D5-BEDE-CE20E935372A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E7CB80D-5A34-46D5-BEDE-CE20E935372A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E7CB80D-5A34-46D5-BEDE-CE20E935372A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E7CB80D-5A34-46D5-BEDE-CE20E935372A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
