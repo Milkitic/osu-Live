@@ -10,5 +10,6 @@ namespace osu_live_sharpdx.Layer
     {
         void Measure();
         void Draw();
+        void Dispose();
     }
 }
